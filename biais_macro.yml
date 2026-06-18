@@ -1,0 +1,36 @@
+name: Biais Macro EUR/USD Hebdo
+
+on:
+  # Exécuter chaque dimanche à 20h UTC (21h Paris)
+  schedule:
+    - cron: '0 20 * * 0'
+
+  # Permet aussi d'exécuter manuellement (pour tester)
+  workflow_dispatch:
+
+jobs:
+  calculate-bias:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run bias calculation
+      run: python biais_macro.py
+
+    - name: Upload result
+      uses: actions/upload-artifact@v4
+      with:
+        name: biais-resultat
+        path: biais_resultat.txt
