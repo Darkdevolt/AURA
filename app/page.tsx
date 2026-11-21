@@ -40,6 +40,8 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-ink text-white">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img aria-hidden src="/lion-light.png" alt="" width={534} height={447} className="pointer-events-none absolute -right-16 top-6 w-[22rem] max-w-none opacity-[0.07] sm:right-0 sm:w-[30rem]" />
         <div className="wrap relative pb-24 pt-8 sm:pt-12">
           <p className="eyebrow !text-gold-light">VTC · Dakar</p>
           <h1 className="mt-3 font-display text-[2.1rem] font-bold leading-[1.1] sm:text-5xl">

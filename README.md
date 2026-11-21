@@ -109,10 +109,12 @@ Pour passer à 2 ou 3 voitures : Réglages → « Nombre de véhicules ».
 
 ## Logo et couleurs
 
-- Logo : `public/logo.svg` (en-tête) et `app/icon.svg` (favicon). Remplacez-les par le logo officiel
-  (même nom ; un `.png` fonctionne aussi pour `app/icon.png`).
-- Image de partage (Open Graph) : `app/opengraph-image.tsx`.
-- Palette (noir / or) : variables `--color-*` en haut de `app/globals.css`.
+- `public/logo.png` : logo d'origine (fond transparent), pour fond clair
+- `public/logo-light.png` : logo en version claire pour fond noir (pied de page)
+- `public/logo-mark-light.png` : lion + couronne, version claire (en-tête) ; `public/lion-light.png` : filigrane de l'accueil
+- `app/icon.png`, `app/apple-icon.png` : favicon et icône d'écran d'accueil
+- `app/opengraph-image.jpg` : image affichée quand on partage le lien (WhatsApp, Facebook…)
+- Palette noir / or tirée du logo : variables `--color-*` en haut de `app/globals.css`
 
 ## Structure
 

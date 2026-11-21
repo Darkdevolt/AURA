@@ -9,8 +9,8 @@ export default function Header({ line }: { line?: ContactLine }) {
     <header className="sticky top-0 z-[1000] border-b border-white/10 bg-ink text-white">
       <div className="wrap flex items-center justify-between gap-3 py-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label="Luxus Asaad — accueil">
-          <Logo size={40} />
-          <span className="font-display text-xl font-bold tracking-wide">
+          <Logo height={38} />
+          <span className="text-[17px] font-extrabold uppercase leading-none tracking-[0.08em]">
             Luxus <span className="gold-text">Asaad</span>
           </span>
         </Link>

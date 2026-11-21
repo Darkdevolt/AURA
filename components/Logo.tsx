@@ -1,7 +1,28 @@
-/* Logo de l'en-tête : remplacez public/logo.svg par le logo officiel. */
-export default function Logo({ size = 40 }: { size?: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src="/logo.svg" alt="" width={size} height={size} style={{ width: size, height: size }} className="object-contain" />
-  );
+/* eslint-disable @next/next/no-img-element */
+/**
+ * Logo Luxus Asaad.
+ * - variant "mark"  : lion + couronne, version claire pour fond noir (en-tête)
+ * - variant "full"  : logo complet, version claire pour fond noir (pied de page)
+ * - variant "full-dark" : logo complet d'origine pour fond clair
+ */
+const SRC = {
+  mark: { src: "/logo-mark-light.png", ratio: 190 / 160 },
+  full: { src: "/logo-light.png", ratio: 640 / 543 },
+  "full-dark": { src: "/logo.png", ratio: 640 / 543 },
+} as const;
+
+export default function Logo({
+  variant = "mark",
+  height = 40,
+  className = "",
+  alt = "",
+}: {
+  variant?: keyof typeof SRC;
+  height?: number;
+  className?: string;
+  alt?: string;
+}) {
+  const { src, ratio } = SRC[variant];
+  const width = Math.round(height * ratio);
+  return <img src={src} alt={alt} width={width} height={height} style={{ width, height }} className={className} decoding="async" />;
 }

@@ -8,10 +8,7 @@ export default function Footer({ lines }: { lines: ContactLine[] }) {
     <footer className="mt-16 bg-ink text-neutral-300">
       <div className="wrap grid gap-8 py-10 sm:grid-cols-2">
         <div>
-          <div className="flex items-center gap-2.5">
-            <Logo size={36} />
-            <span className="font-display text-lg font-bold text-white">Luxus <span className="gold-text">Asaad</span></span>
-          </div>
+          <Logo variant="full" height={110} alt="Luxus Asaad" />
           <p className="mt-3 text-sm leading-relaxed">
             Chauffeur privé en véhicule électrique à Dakar. Du lundi au samedi, de 8h00 à 20h00.
           </p>
