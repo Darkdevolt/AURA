@@ -7,7 +7,7 @@ import { DEFAULT_SETTINGS, type Settings } from "./types";
 
 export const getSettings = cache(async (): Promise<Settings> => {
   try {
-    const { data, error } = await supabasePublic().rpc("public_get_settings", { p_token: SERVER_RPC_TOKEN() });
+    const { data, error } = await supabasePublic().rpc("luxus_get_settings", { p_token: SERVER_RPC_TOKEN() });
     if (error || !data) throw error ?? new Error("settings vides");
     return { ...DEFAULT_SETTINGS, ...(data as Settings) };
   } catch (e) {
@@ -17,7 +17,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
 });
 
 export async function getBusy(from: number, to: number): Promise<BusyInterval[]> {
-  const { data, error } = await supabasePublic().rpc("public_get_busy", {
+  const { data, error } = await supabasePublic().rpc("luxus_get_busy", {
     p_token: SERVER_RPC_TOKEN(),
     p_from: new Date(from).toISOString(),
     p_to: new Date(to).toISOString(),

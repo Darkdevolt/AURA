@@ -40,16 +40,16 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const statsFrom = weekStart < monthStart ? weekStart : monthStart;
 
   const [dayRes, statsRes, pendingRes, settingsRes, blocksRes] = await Promise.all([
-    supabase.from("bookings").select("*").gte("start_at", dayStart).lt("start_at", dayEnd).order("start_at"),
+    supabase.from("luxus_bookings").select("*").gte("start_at", dayStart).lt("start_at", dayEnd).order("start_at"),
     supabase
-      .from("bookings")
+      .from("luxus_bookings")
       .select("start_at, final_price, estimated_price")
       .eq("status", "completed")
       .gte("start_at", new Date(dakarToUtc(statsFrom, "00:00")).toISOString())
       .lt("start_at", new Date(dakarToUtc(addDays(today, 1), "00:00")).toISOString()),
-    supabase.from("bookings").select("*").eq("status", "pending").gte("start_at", new Date().toISOString()).order("start_at").limit(30),
-    supabase.from("settings").select("open_time, close_time").single(),
-    supabase.from("blocked_slots").select("*").lt("start_at", dayEnd).gt("end_at", dayStart),
+    supabase.from("luxus_bookings").select("*").eq("status", "pending").gte("start_at", new Date().toISOString()).order("start_at").limit(30),
+    supabase.from("luxus_settings").select("open_time, close_time").single(),
+    supabase.from("luxus_blocked_slots").select("*").lt("start_at", dayEnd).gt("end_at", dayStart),
   ]);
 
   const bookings = (dayRes.data ?? []) as Booking[];

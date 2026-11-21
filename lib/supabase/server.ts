@@ -33,7 +33,7 @@ export async function requireAdmin() {
   const supabase = await supabaseSession();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
-  const { data: ok } = await supabase.rpc("is_admin");
+  const { data: ok } = await supabase.rpc("luxus_is_admin");
   if (!ok) return null;
   return { supabase, user: auth.user };
 }

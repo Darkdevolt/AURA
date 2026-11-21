@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   const to = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("to") ?? "") ? url.searchParams.get("to")! : today;
 
   const { data, error } = await admin.supabase
-    .from("bookings")
+    .from("luxus_bookings")
     .select("*")
     .gte("start_at", new Date(dakarToUtc(from, "00:00")).toISOString())
     .lt("start_at", new Date(dakarToUtc(addDays(to, 1), "00:00")).toISOString())

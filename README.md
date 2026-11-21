@@ -45,9 +45,10 @@ Le prix et la durée sont **recalculés côté serveur** : le navigateur ne peut
 
 - RLS activé sur toutes les tables. Le rôle public (`anon`) **n'a aucun accès direct** aux tables.
 - Le public passe par des routes serveur Next.js (`/api/...`) qui appellent des fonctions Postgres `SECURITY DEFINER`
-  (`public_create_booking`, `public_get_booking`, `public_cancel_booking`, `public_get_busy`, `public_get_settings`).
+  (`luxus_create_booking`, `luxus_get_booking`, `luxus_cancel_booking`, `luxus_get_busy`, `luxus_get_settings`).
   Ces fonctions exigent un **jeton serveur** (`SERVER_RPC_TOKEN`), connu uniquement de Vercel et de la base.
-- L'admin est un utilisateur Supabase Auth inscrit dans la table `admins` ; les politiques RLS lui donnent accès à tout.
+- Tous les objets de base de données sont préfixés `luxus_` (schéma secret : `luxus_private`) : l'application peut partager un projet Supabase avec une autre sans conflit.
+- L'admin est un utilisateur Supabase Auth inscrit dans la table `luxus_admins` ; les politiques RLS lui donnent accès à tout.
 - Anti-spam : champ caché (pot de miel), limite de réservations actives par numéro (3) et par connexion IP sur 24 h (6).
   L'IP n'est jamais stockée en clair (empreinte SHA-256 salée).
 
@@ -71,7 +72,7 @@ Appliquer dans l'ordre `supabase/migrations/0001_init.sql` puis `0002_contact_li
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | non |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys → clé `anon` / *publishable* | non (publique par conception) |
-| `SERVER_RPC_TOKEN` | SQL : `select server_token from private.app_secrets;` | **oui** (type *Sensitive* sur Vercel) |
+| `SERVER_RPC_TOKEN` | SQL : `select server_token from luxus_private.app_secrets;` | **oui** (type *Sensitive* sur Vercel) |
 | `NEXT_PUBLIC_SITE_URL` | URL publique du site, ex. `https://luxus-asaad.vercel.app` | non |
 | `IP_HASH_SALT` | facultatif : chaîne aléatoire (sinon le jeton serveur sert de sel) | oui |
 
@@ -80,8 +81,8 @@ Aucune clé `service_role` n'est nécessaire. Ne mettez jamais de secret dans le
 
 Pour changer le jeton serveur :
 ```sql
-update private.app_secrets set server_token = encode(gen_random_bytes(32), 'hex');
-select server_token from private.app_secrets;
+update luxus_private.app_secrets set server_token = replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
+select server_token from luxus_private.app_secrets;
 ```
 puis mettre la nouvelle valeur dans Vercel et redéployer.
 
@@ -91,11 +92,11 @@ puis mettre la nouvelle valeur dans Vercel et redéployer.
    cochez **Auto Confirm User**.
 2. Supabase → **SQL Editor**, exécutez (avec votre email) :
    ```sql
-   insert into public.admins (user_id)
+   insert into public.luxus_admins (user_id)
    select id from auth.users where email = 'votre-email@exemple.com';
    ```
 3. Recommandé : Authentication → Sign In / Providers → désactivez **Allow new users to sign up**
-   (même sans cela, un compte non listé dans `admins` n'a accès à rien).
+   (même sans cela, un compte non listé dans `luxus_admins` n'a accès à rien).
 4. Connectez-vous sur `/admin/login`.
 
 ## Modifier les tarifs, horaires et numéros

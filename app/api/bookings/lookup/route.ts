@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const phone = normalizeSenegalPhone(str(body.phone, 30));
   if (!/^LA-\d{4,}$/.test(reference) || !phone) return jsonError("Numéro de réservation ou téléphone invalide.");
 
-  const { data, error } = await supabasePublic().rpc("public_get_booking", {
+  const { data, error } = await supabasePublic().rpc("luxus_get_booking", {
     p_token: SERVER_RPC_TOKEN(),
     p_reference: reference,
     p_phone: phone,

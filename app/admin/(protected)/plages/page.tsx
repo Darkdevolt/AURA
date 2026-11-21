@@ -6,7 +6,7 @@ import { dakarDate, dakarTime, formatDateLong } from "@/lib/time";
 export default async function BlocksPage() {
   const { supabase } = (await requireAdmin())!;
   const { data } = await supabase
-    .from("blocked_slots")
+    .from("luxus_blocked_slots")
     .select("*")
     .gte("end_at", new Date().toISOString())
     .order("start_at");

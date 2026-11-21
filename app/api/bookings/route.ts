@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const err = checkStart(startAt, route.durationMin, Date.now(), busy, settings);
     if (err) return jsonError(SLOT_ERROR_MESSAGES[err], 409);
 
-    const { data, error } = await supabasePublic().rpc("public_create_booking", {
+    const { data, error } = await supabasePublic().rpc("luxus_create_booking", {
       p_token: SERVER_RPC_TOKEN(),
       p_customer_name: name,
       p_customer_phone: phone,

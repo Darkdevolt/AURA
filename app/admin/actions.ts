@@ -31,7 +31,7 @@ export async function updateBooking(_: ActionResult | null, form: FormData): Pro
   const payment_method = payment === "" ? null : (payment as PaymentMethod);
   if (payment_method && !PAYMENTS.includes(payment_method)) return { ok: false, message: "Moyen de paiement invalide." };
 
-  const { error } = await supabase.from("bookings").update({ status, final_price, payment_method }).eq("id", id);
+  const { error } = await supabase.from("luxus_bookings").update({ status, final_price, payment_method }).eq("id", id);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin");
   return { ok: true, message: "Enregistré." };
@@ -50,7 +50,7 @@ export async function createBlock(_: ActionResult | null, form: FormData): Promi
   const start_at = new Date(dakarToUtc(date, startTime)).toISOString();
   const end_at = new Date(dakarToUtc(endDate, endTime)).toISOString();
   if (end_at <= start_at) return { ok: false, message: "La fin doit être après le début." };
-  const { error } = await supabase.from("blocked_slots").insert({ start_at, end_at, reason: reason || null });
+  const { error } = await supabase.from("luxus_blocked_slots").insert({ start_at, end_at, reason: reason || null });
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin/plages");
   return { ok: true, message: "Plage bloquée ajoutée." };
@@ -58,7 +58,7 @@ export async function createBlock(_: ActionResult | null, form: FormData): Promi
 
 export async function deleteBlock(form: FormData) {
   const supabase = await admin();
-  await supabase.from("blocked_slots").delete().eq("id", String(form.get("id")));
+  await supabase.from("luxus_blocked_slots").delete().eq("id", String(form.get("id")));
   revalidatePath("/admin/plages");
 }
 
@@ -103,7 +103,7 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
   patch.phone_number = lines[0].phone;
   patch.whatsapp_number = lines.find((l) => l.whatsapp)!.phone;
 
-  const { error } = await supabase.from("settings").update(patch).eq("id", true);
+  const { error } = await supabase.from("luxus_settings").update(patch).eq("id", true);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/", "layout");
   return { ok: true, message: "Réglages enregistrés." };
