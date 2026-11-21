@@ -8,7 +8,10 @@ export const dynamic = "force-dynamic";
 
 const NAV = [
   { href: "/admin", label: "Réservations" },
-  { href: "/admin/plages", label: "Plages bloquées" },
+  { href: "/admin/finances", label: "Finances" },
+  { href: "/admin/depenses", label: "Dépenses & revenus" },
+  { href: "/admin/flotte", label: "Flotte" },
+  { href: "/admin/plages", label: "Plages" },
   { href: "/admin/reglages", label: "Réglages" },
 ];
 
@@ -32,11 +35,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <nav aria-label="Administration" className="flex flex-wrap gap-1.5">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="chip border-neutral-300 bg-white hover:border-ink">{n.label}</Link>
+            <Link key={n.href} href={n.href} className="inline-flex min-h-10 items-center border border-line px-3 text-[11px] font-semibold uppercase tracking-[0.05em] hover:border-ink">{n.label}</Link>
           ))}
         </nav>
         <form action={signOut}>
-          <button className="chip border-neutral-300 bg-white text-neutral-700 hover:border-ink" title={admin.user.email}>Déconnexion</button>
+          <button className="inline-flex min-h-10 items-center px-3 text-[11px] font-semibold uppercase tracking-[0.05em] text-neutral-500 underline-offset-4 hover:underline" title={admin.user.email}>Déconnexion</button>
         </form>
       </div>
       {children}

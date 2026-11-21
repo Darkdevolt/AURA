@@ -38,7 +38,7 @@ interface SlotOption {
   time: string;
 }
 
-type Confirmation = BookingSummary & { distance_km: number; duration_min: number; whatsapp_number: string };
+type Confirmation = BookingSummary & { distance_km: number; duration_min: number; whatsapp_number: string; tracking_token: string };
 
 const DEFAULT_DURATION = 25;
 
@@ -85,6 +85,26 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const phoneOk = normalizeSenegalPhone(phone) !== null;
+
+  // Pré-remplissage : « Réserver à nouveau » depuis l'historique, et coordonnées déjà saisies
+  useEffect(() => {
+    try {
+      const client = JSON.parse(localStorage.getItem("la:client") || "null");
+      if (client?.name) setName(client.name);
+      if (client?.phone) setPhone(formatSenegalPhone(client.phone));
+      const pre = JSON.parse(localStorage.getItem("la:prefill") || "null");
+      if (pre?.pickup && pre?.dropoff) {
+        setPickup(pre.pickup);
+        setDropoff(pre.dropoff);
+        if (pre.pickupNote) setPickupNote(pre.pickupNote);
+        if (pre.passengers) setPassengers(pre.passengers);
+        setActive("dropoff");
+        localStorage.removeItem("la:prefill");
+      }
+    } catch {
+      /* stockage indisponible */
+    }
+  }, []);
 
   // ---------------------------------------------------------------- Points
   const setPoint = useCallback(async (kind: PointKind, p: LatLng, address?: string) => {
@@ -228,9 +248,10 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         if (res.status === 409) void loadSlots();
         return;
       }
-      setConfirmation(data);
+      setConfirmation({ ...data, tracking_url: `${window.location.origin}/suivi/${data.reference}?k=${data.tracking_token}` });
       try {
         localStorage.setItem("la:last", JSON.stringify({ reference: data.reference, phone: data.customer_phone }));
+        localStorage.setItem("la:client", JSON.stringify({ name, phone: data.customer_phone }));
       } catch {
         /* stockage indisponible : sans importance */
       }
@@ -276,6 +297,9 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               <WhatsAppIcon className="h-6 w-6" /> Envoyer sur WhatsApp
             </a>
             <p className="mt-2 text-center text-xs text-neutral-500">Envoyé au {formatSenegalPhone(confirmation.whatsapp_number)}</p>
+            {confirmation.tracking_url && (
+              <a href={confirmation.tracking_url} className="btn-outline mt-3 w-full text-[12px]">Suivre mon chauffeur</a>
+            )}
           </div>
         </div>
         <div className="card">

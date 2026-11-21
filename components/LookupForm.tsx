@@ -20,6 +20,24 @@ interface PublicBooking {
   duration_min: number;
   estimated_price: number;
   status: BookingStatus;
+  tracking_token?: string;
+}
+
+interface HistoryItem {
+  reference: string;
+  pickup_address: string;
+  pickup_lat: number;
+  pickup_lng: number;
+  pickup_note: string | null;
+  dropoff_address: string;
+  dropoff_lat: number;
+  dropoff_lng: number;
+  start_at: string;
+  passengers: number;
+  estimated_price: number;
+  final_price: number | null;
+  status: BookingStatus;
+  tracking_token: string;
 }
 
 export default function LookupForm({ whatsapp }: { whatsapp: string }) {
@@ -30,6 +48,7 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
     try {
@@ -73,6 +92,17 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
     e?.preventDefault();
     const data = await call("/api/bookings/lookup");
     setBooking(data?.booking ?? null);
+    setHistory([]);
+    if (data?.booking) {
+      const h = await fetch("/api/client/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: reference.trim(), phone }),
+      })
+        .then((r) => (r.ok ? r.json() : { bookings: [] }))
+        .catch(() => ({ bookings: [] }));
+      setHistory(h.bookings ?? []);
+    }
   };
 
   const cancel = async () => {
@@ -82,6 +112,23 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
       setInfo("Votre réservation a bien été annulée.");
       setBooking((b) => (b ? { ...b, status: "cancelled" } : b));
     }
+  };
+
+  const rebook = (h: HistoryItem) => {
+    try {
+      localStorage.setItem(
+        "la:prefill",
+        JSON.stringify({
+          pickup: { lat: h.pickup_lat, lng: h.pickup_lng, address: h.pickup_address },
+          dropoff: { lat: h.dropoff_lat, lng: h.dropoff_lng, address: h.dropoff_address },
+          pickupNote: h.pickup_note ?? "",
+          passengers: h.passengers,
+        }),
+      );
+    } catch {
+      /* stockage indisponible */
+    }
+    window.location.href = "/#reserver";
   };
 
   const start = booking ? Date.parse(booking.start_at) : 0;
@@ -107,8 +154,8 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
       {booking && (
         <div className="card space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-2xl font-extrabold">{booking.reference}</p>
-            <span className={` border px-3 py-1 text-sm font-semibold ${STATUS_COLORS[booking.status]}`}>
+            <p className="font-brand text-2xl">{booking.reference}</p>
+            <span className={`border px-3 py-1 text-xs font-semibold uppercase ${STATUS_COLORS[booking.status]}`}>
               {STATUS_LABELS[booking.status]}
             </span>
           </div>
@@ -128,12 +175,41 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
             href={waLink(whatsapp, `Bonjour Luxus Asaad, je vous contacte au sujet de ma réservation ${booking.reference}.`)}>
             Nous écrire sur WhatsApp
           </a>
+          {booking.tracking_token && ["pending", "confirmed", "in_progress"].includes(booking.status) && (
+            <a className="btn-outline w-full text-[12px]" href={`/suivi/${booking.reference}?k=${booking.tracking_token}`}>Suivre mon chauffeur</a>
+          )}
           {cancellable && (
-            <button type="button" className="btn-outline w-full border-rose-300 text-rose-800" onClick={cancel} disabled={loading}>
+            <button type="button" className="btn w-full border border-rose-300 bg-white text-rose-800 hover:bg-rose-50" onClick={cancel} disabled={loading}>
               Annuler ma réservation
             </button>
           )}
         </div>
+      )}
+
+      {history.length > 1 && (
+        <section aria-labelledby="hist" className="space-y-3">
+          <h2 id="hist" className="text-[13px] font-bold uppercase tracking-[0.07em]">Mes courses ({history.length})</h2>
+          <ul className="divide-y divide-line border-y border-line">
+            {history.map((h) => {
+              const t = Date.parse(h.start_at);
+              return (
+                <li key={h.reference} className="py-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-sm font-semibold">{formatDateLong(t)} · {dakarTime(t).replace(":", "h")}</p>
+                    <span className="text-xs text-neutral-500">{h.reference} · {STATUS_LABELS[h.status]}</span>
+                  </div>
+                  <p className="mt-1 truncate text-sm text-neutral-700">{h.pickup_address} → {h.dropoff_address}</p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm tabular-nums">{formatFcfa(h.final_price ?? h.estimated_price)}</span>
+                    <button type="button" onClick={() => rebook(h)} className="text-[12px] font-semibold uppercase tracking-[0.05em] text-gold-dark underline underline-offset-4">
+                      Réserver à nouveau
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </div>
   );

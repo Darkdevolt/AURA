@@ -32,7 +32,7 @@ export async function getBusy(from: number, to: number): Promise<BusyInterval[]>
 
 /** Paramètres publics transmis au navigateur (sans limites anti-spam). */
 export function publicSettings(s: Settings) {
-  const { max_active_per_phone: _a, max_per_ip_per_day: _b, ...rest } = s;
+  const { max_active_per_phone: _a, max_per_ip_per_day: _b, ntfy_topic: _c, ...rest } = s;
   return rest;
 }
 export type PublicSettings = ReturnType<typeof publicSettings>;

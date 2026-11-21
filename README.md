@@ -126,3 +126,62 @@ lib/                 logique métier : slots.ts (créneaux), pricing.ts (prix), 
 supabase/migrations  schéma SQL, RLS et fonctions
 tests/               tests Vitest
 ```
+
+---
+
+## V2 : finances, flotte, chauffeurs, suivi, notifications
+
+### Finances (admin uniquement)
+- **/admin/finances** : chiffre d'affaires, dépenses, bénéfice, marge, recette et coût au km, comparaison avec le mois
+  précédent, évolution sur 6 mois, dépenses par catégorie, rentabilité et remboursement de chaque véhicule.
+- **/admin/depenses** : saisie des dépenses (recharge, entretien, salaire…) et des revenus hors site (Yango, clients
+  directs). **Scanner un reçu** : photo d'un ticket, d'une facture, d'une capture Wave / Orange Money ou d'un relevé
+  Yango → montant, date, catégorie remplis automatiquement par Claude. La photo est conservée (stockage privé).
+- Les courses réservées sur le site et terminées sont comptées automatiquement (prix payé, sinon prix estimé).
+
+**Activer la lecture automatique des reçus** : créer une clé sur https://console.anthropic.com (Settings → API Keys,
+ajouter quelques dollars de crédit), puis dans Vercel ajouter `ANTHROPIC_API_KEY` (type *Sensitive*) et redéployer.
+Coût indicatif : quelques FCFA par photo (modèle `claude-opus-5-5`, effort `low`). Sans clé, la photo est seulement
+enregistrée et la saisie se fait à la main.
+
+### Flotte et chauffeurs (/admin/flotte)
+- Véhicules : nom (Asaad 1, Asaad 2…), immatriculation, modèle, prix et date d'achat (pour le suivi du remboursement).
+  Le nombre de véhicules **en service** fixe automatiquement le nombre de courses simultanées possibles.
+- Chauffeurs : nom, téléphone, véhicule, **code de connexion** (4 à 8 chiffres, stocké sous forme d'empreinte).
+- Chaque réservation peut être attribuée à un véhicule et à un chauffeur depuis le tableau de bord.
+
+### Page chauffeur (/chauffeur)
+Connexion téléphone + code. Le chauffeur voit ses courses des 7 prochains jours (et celles non attribuées), appelle
+ou écrit au client, ouvre Waze / Maps, passe la course en « acceptée », « client à bord », « terminée » (prix et moyen
+de paiement) ou « client absent », et **partage sa position** pendant la course.
+
+### Suivi client (/suivi/LA-0001?k=…)
+Lien secret propre à chaque réservation, affiché sur l'écran de confirmation, dans « Ma réservation », dans le message
+WhatsApp, et envoyé par l'admin avec le bouton « Confirmer + lien de suivi ». Le client voit le chauffeur, le véhicule,
+sa position sur la carte et un temps d'arrivée estimé.
+
+### Espace client
+Dans « Ma réservation », après avoir saisi un numéro de réservation et le téléphone, le client voit tout son historique
+et peut **réserver à nouveau** le même trajet en un geste. Prénom et téléphone sont mémorisés sur son téléphone.
+
+### Notifications des nouvelles réservations
+- **Gratuit, actif** : application **ntfy** (Android / iPhone) → s'abonner au sujet affiché dans Réglages.
+- **WhatsApp automatique** (Meta WhatsApp Cloud API, payant à l'usage, compte Meta Business vérifié) : définir
+  `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_NOTIFY_TO` (ex. `221772966462`) et faire approuver un modèle
+  `nouvelle_reservation` en français à 5 paramètres (référence, nom, date, départ, prix) ; `WHATSAPP_TEMPLATE` pour un
+  autre nom.
+
+### Paiement Wave en ligne (désactivé tant que le compte n'existe pas)
+Avec un compte **Wave Business** et l'accès API : définir `WAVE_API_KEY` et `WAVE_WEBHOOK_SECRET` dans Vercel, et
+déclarer chez Wave le webhook `https://luxus-asaad.vercel.app/api/webhooks/wave` (événement
+`checkout.session.completed`). Le bouton « Envoyer un lien Wave » apparaît alors sur chaque réservation ; le paiement
+reçu marque la course payée automatiquement.
+
+### Variables d'environnement V2 (toutes facultatives)
+| Nom | Rôle |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Lecture automatique des reçus |
+| `WAVE_API_KEY`, `WAVE_WEBHOOK_SECRET` | Paiement Wave |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_NOTIFY_TO`, `WHATSAPP_TEMPLATE` | Notification WhatsApp automatique |
+
+Migration SQL correspondante : `supabase/migrations/0003_v2_flotte_finances.sql`.

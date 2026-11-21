@@ -1,5 +1,7 @@
 import Link from "next/link";
 import BookingCard from "@/components/admin/BookingCard";
+import { SITE_URL } from "@/lib/env";
+import { waveEnabled } from "@/lib/wave";
 import { formatFcfa } from "@/lib/pricing";
 import { requireAdmin } from "@/lib/supabase/server";
 import { addDays, dakarDate, dakarTime, dakarToUtc, formatDateLong, timeToMinutes, weekdayOf } from "@/lib/time";
@@ -39,7 +41,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const monthStart = `${today.slice(0, 8)}01`;
   const statsFrom = weekStart < monthStart ? weekStart : monthStart;
 
-  const [dayRes, statsRes, pendingRes, settingsRes, blocksRes] = await Promise.all([
+  const [dayRes, statsRes, pendingRes, settingsRes, blocksRes, vehRes, drvRes] = await Promise.all([
     supabase.from("luxus_bookings").select("*").gte("start_at", dayStart).lt("start_at", dayEnd).order("start_at"),
     supabase
       .from("luxus_bookings")
@@ -50,9 +52,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     supabase.from("luxus_bookings").select("*").eq("status", "pending").gte("start_at", new Date().toISOString()).order("start_at").limit(30),
     supabase.from("luxus_settings").select("open_time, close_time").single(),
     supabase.from("luxus_blocked_slots").select("*").lt("start_at", dayEnd).gt("end_at", dayStart),
+    supabase.from("luxus_vehicles").select("id, name").eq("active", true).order("created_at"),
+    supabase.from("luxus_drivers").select("id, name").eq("active", true).order("created_at"),
   ]);
 
   const bookings = (dayRes.data ?? []) as Booking[];
+  const fleet = { vehicles: vehRes.data ?? [], drivers: drvRes.data ?? [], siteUrl: SITE_URL(), waveEnabled: waveEnabled() };
   const pendingOther = ((pendingRes.data ?? []) as Booking[]).filter((b) => dakarDate(Date.parse(b.start_at)) !== date);
   const stats = (from: string) => {
     const rows = (statsRes.data ?? []).filter((r) => dakarDate(Date.parse(r.start_at)) >= from);
@@ -117,13 +122,13 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
       <section className="space-y-3" aria-label="Réservations du jour">
         {bookings.length === 0 && <p className="card text-center text-neutral-700">Aucune réservation ce jour-là.</p>}
-        {bookings.map((b) => <BookingCard key={b.id} b={b} />)}
+        {bookings.map((b) => <BookingCard key={b.id} b={b} {...fleet} />)}
       </section>
 
       {pendingOther.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-bold">À confirmer (autres jours)</h2>
-          {pendingOther.map((b) => <BookingCard key={b.id} b={b} showDate />)}
+          {pendingOther.map((b) => <BookingCard key={b.id} b={b} showDate {...fleet} />)}
         </section>
       )}
 

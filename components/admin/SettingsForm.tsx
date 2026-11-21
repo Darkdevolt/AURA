@@ -34,6 +34,7 @@ export default function SettingsForm({ s }: { s: Settings }) {
 
       <fieldset className="card grid grid-cols-2 gap-3">
         <legend className="px-1 text-lg font-bold">Horaires et créneaux</legend>
+        <p className="col-span-2 text-sm text-neutral-600">Véhicules en service : <strong>{s.vehicles}</strong> (géré dans Flotte).</p>
         <div><label className="label text-sm" htmlFor="open_time">Ouverture</label><input id="open_time" type="time" name="open_time" defaultValue={s.open_time.slice(0, 5)} className="input" /></div>
         <div><label className="label text-sm" htmlFor="close_time">Fermeture</label><input id="close_time" type="time" name="close_time" defaultValue={s.close_time.slice(0, 5)} className="input" /></div>
         <div className="col-span-2">
@@ -51,7 +52,6 @@ export default function SettingsForm({ s }: { s: Settings }) {
         <Num name="margin_minutes" label="Marge" value={s.margin_minutes} suffix="min" />
         <Num name="min_notice_minutes" label="Délai minimum" value={s.min_notice_minutes} suffix="min" />
         <Num name="max_days_ahead" label="Réservation max." value={s.max_days_ahead} suffix="jours" />
-        <Num name="vehicles" label="Nombre de véhicules" value={s.vehicles} />
       </fieldset>
 
       <fieldset className="card space-y-3">
@@ -71,6 +71,24 @@ export default function SettingsForm({ s }: { s: Settings }) {
             </label>
           </div>
         ))}
+      </fieldset>
+
+      <fieldset className="card space-y-3">
+        <legend className="px-1 text-lg font-bold">Notifications sur votre téléphone</legend>
+        <p className="text-sm text-neutral-600">
+          Recevez une alerte à chaque nouvelle réservation, gratuitement : installez l&apos;application <strong>ntfy</strong>{" "}
+          (Android / iPhone), touchez « + », puis abonnez-vous au sujet ci-dessous. Gardez-le secret.
+        </p>
+        <div>
+          <label className="label" htmlFor="ntfy_topic">Sujet ntfy</label>
+          <input id="ntfy_topic" name="ntfy_topic" defaultValue={s.ntfy_topic ?? ""} className="input font-mono" placeholder="Vide = désactivé" />
+        </div>
+        {s.ntfy_topic && (
+          <p className="text-sm">
+            Lien direct :{" "}
+            <a className="underline underline-offset-4" href={`https://ntfy.sh/${s.ntfy_topic}`} target="_blank" rel="noopener noreferrer">ntfy.sh/{s.ntfy_topic}</a>
+          </p>
+        )}
       </fieldset>
 
       <fieldset className="card grid grid-cols-2 gap-3">

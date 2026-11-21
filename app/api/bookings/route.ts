@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import { SERVER_RPC_TOKEN } from "@/lib/env";
+import { after, NextResponse } from "next/server";
+import { SERVER_RPC_TOKEN, SITE_URL } from "@/lib/env";
+import { notifyNewBooking } from "@/lib/notify";
 import { estimateRoute, isInSenegal } from "@/lib/geo";
 import { clientIpHash, jsonError, parseLatLng, str } from "@/lib/http";
 import { bookingWhatsApp, normalizeSenegalPhone } from "@/lib/phone";
@@ -83,8 +84,25 @@ export async function POST(req: Request) {
       return jsonError("La réservation n'a pas pu être enregistrée. Réessayez dans un instant.", 500);
     }
 
-    const row = (data as { reference: string }[])[0];
+    const row = (data as { reference: string; tracking_token: string }[])[0];
+    after(() =>
+      notifyNewBooking(
+        {
+          reference: row.reference,
+          customer_name: name,
+          customer_phone: phone,
+          pickup_address: pickupAddress,
+          dropoff_address: dropoffAddress,
+          start_at: new Date(startAt).toISOString(),
+          estimated_price: price,
+          passengers,
+        },
+        settings.ntfy_topic,
+        SITE_URL(),
+      ),
+    );
     return NextResponse.json({
+      tracking_token: row.tracking_token,
       reference: row.reference,
       customer_name: name,
       customer_phone: phone,
