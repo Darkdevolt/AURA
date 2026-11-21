@@ -46,9 +46,8 @@ export async function POST(req: Request) {
   if (!isFinite(startAt)) return jsonError("Merci de choisir un créneau.");
 
   try {
-    const settings = await getSettings();
     // Le prix et la durée sont recalculés côté serveur (jamais pris du navigateur)
-    const route = await estimateRoute(pickup, dropoff);
+    const [settings, route] = await Promise.all([getSettings(), estimateRoute(pickup, dropoff)]);
     const { price } = computePrice(route.distanceKm, settings, pickup, dropoff);
     const blockedUntil = startAt + blockMinutes(route.durationMin, settings) * 60_000;
 

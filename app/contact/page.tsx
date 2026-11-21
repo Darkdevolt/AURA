@@ -5,7 +5,8 @@ import { validLines } from "@/lib/phone";
 import { getSettings } from "@/lib/server-data";
 
 export const metadata: Metadata = { title: "Contact" };
-export const dynamic = "force-dynamic";
+// Page pré-générée, rafraîchie toutes les 5 minutes (et immédiatement après un changement de réglages)
+export const revalidate = 300;
 
 export default async function ContactPage() {
   const s = await getSettings();

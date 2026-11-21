@@ -13,10 +13,9 @@ export async function GET(req: Request) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return jsonError("Date invalide.");
 
   try {
-    const settings = await getSettings();
     const from = dakarToUtc(date, "00:00");
     const to = dakarToUtc(addDays(date, 1), "12:00");
-    const busy = await getBusy(from - 12 * 3600_000, to);
+    const [settings, busy] = await Promise.all([getSettings(), getBusy(from - 12 * 3600_000, to)]);
     const slots = availableSlots(date, duration, Date.now(), busy, settings);
     return NextResponse.json(
       { slots: slots.map((s) => ({ start: new Date(s.start).toISOString(), time: s.time })) },

@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { SETTINGS_TAG } from "@/lib/server-data";
 import { redirect } from "next/navigation";
 import { normalizeSenegalPhone } from "@/lib/phone";
 import { requireAdmin, supabaseSession } from "@/lib/supabase/server";
@@ -111,6 +112,7 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
 
   const { error } = await supabase.from("luxus_settings").update(patch).eq("id", true);
   if (error) return { ok: false, message: error.message };
+  revalidateTag(SETTINGS_TAG, "max");
   revalidatePath("/", "layout");
   return { ok: true, message: "Réglages enregistrés." };
 }
@@ -153,6 +155,7 @@ export async function saveVehicle(_: ActionResult | null, form: FormData): Promi
     ? await supabase.from("luxus_vehicles").update(row).eq("id", id)
     : await supabase.from("luxus_vehicles").insert(row);
   if (error) return { ok: false, message: error.message };
+  revalidateTag(SETTINGS_TAG, "max");
   revalidatePath("/admin", "layout");
   return { ok: true, message: id ? "Véhicule mis à jour." : "Véhicule ajouté." };
 }

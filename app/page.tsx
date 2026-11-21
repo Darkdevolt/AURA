@@ -1,7 +1,8 @@
 import BookingForm from "@/components/BookingForm";
 import { getSettings, publicSettings } from "@/lib/server-data";
 
-export const dynamic = "force-dynamic";
+// Page pré-générée, rafraîchie toutes les 5 minutes (et immédiatement après un changement de réglages)
+export const revalidate = 300;
 
 const PERKS = ["100 % électrique", "Ponctualité", "Paiement à la fin"];
 

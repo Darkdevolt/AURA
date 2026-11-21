@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AddressSearch from "./AddressSearch";
 import { WhatsAppIcon } from "./PhoneLines";
@@ -74,7 +74,9 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   const [estimateLoading, setEstimateLoading] = useState(false);
   const [estimateError, setEstimateError] = useState("");
 
-  const dates = useMemo(() => bookableDates(Date.now(), { ...settings }), [settings]);
+  // Jours calculés dans le navigateur (la page est pré-générée côté serveur)
+  const [dates, setDates] = useState<string[]>([]);
+  useEffect(() => setDates(bookableDates(Date.now(), { ...settings })), [settings]);
   const [date, setDate] = useState<string>("");
   const [slots, setSlots] = useState<SlotOption[] | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);

@@ -25,9 +25,6 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-// Les numéros et réglages viennent de la base : rendu à chaque visite
-export const dynamic = "force-dynamic";
-
 export const viewport: Viewport = {
   themeColor: "#0a0a0a",
   width: "device-width",
