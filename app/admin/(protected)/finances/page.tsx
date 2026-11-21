@@ -74,7 +74,7 @@ export default async function FinancesPage({ searchParams }: { searchParams: Pro
         <h1 className="font-brand mt-1 text-2xl">Finances</h1>
       </div>
 
-      <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto]" action="/admin/finances">
+      <form className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]" action="/admin/finances">
         <div>
           <label className="label" htmlFor="mois">Mois</label>
           <input id="mois" type="month" name="mois" defaultValue={month} className="input" />
