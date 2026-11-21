@@ -53,10 +53,10 @@ export default function SettingsForm({ s }: { s: Settings }) {
         <Num name="disposal_km_per_hour" label="Km estimés par heure de mise à disposition" value={s.disposal_km_per_hour} suffix="km/h" />
         <p className="label col-span-2 mt-2">Pauses de recharge (chaque jour d&apos;ouverture)</p>
         {[0, 1, 2].map((i) => (
-          <div key={i} className="col-span-2 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
+          <div key={i} className="col-span-2 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1.4fr]">
             <input type="time" step={1800} name={`charge_start_${i}`} aria-label={`Début pause ${i + 1}`} defaultValue={s.charge_windows?.[i]?.start ?? ""} className="input" />
             <input type="time" step={1800} name={`charge_end_${i}`} aria-label={`Fin pause ${i + 1}`} defaultValue={s.charge_windows?.[i]?.end ?? ""} className="input" />
-            <input name={`charge_label_${i}`} aria-label={`Nom pause ${i + 1}`} placeholder="Recharge" defaultValue={s.charge_windows?.[i]?.label ?? ""} className="input" maxLength={40} />
+            <input name={`charge_label_${i}`} aria-label={`Nom pause ${i + 1}`} placeholder="Recharge" defaultValue={s.charge_windows?.[i]?.label ?? ""} className="input col-span-2 sm:col-span-1" maxLength={40} />
           </div>
         ))}
         <p className="col-span-2 text-xs text-neutral-500">Laissez une ligne vide pour la retirer. Pour une recharge exceptionnelle, utilisez « Plages ».</p>

@@ -100,13 +100,13 @@ export default function EntryForm({ vehicles, today, scanEnabled }: { vehicles: 
 
   return (
     <div className="space-y-5">
-      <div className="relative bg-ink-grad p-5 text-white">
+      <div className="relative bg-ink-grad p-4 text-white sm:p-5">
         <div aria-hidden className="gold-rule absolute inset-x-0 top-0" />
-        <p className="font-brand text-[15px]">Scanner un reçu</p>
+        <p className="font-brand text-[15px]">{scanEnabled ? "Scanner un reçu" : "Photo du reçu"}</p>
         <p className="mt-1 text-sm text-neutral-400">
           {scanEnabled
             ? "Photo d'un ticket, d'une facture, d'une capture Wave / Orange Money ou d'un relevé Yango : le montant, la date et la catégorie sont remplis automatiquement."
-            : "Photo du justificatif, conservée avec la dépense. (Lecture automatique : ajoutez ANTHROPIC_API_KEY dans Vercel, voir README.)"}
+            : "Joignez la photo du justificatif : elle est conservée avec la dépense. Vous pouvez aussi envoyer vos reçus à Claude dans la conversation : il les lit et les enregistre pour vous."}
         </p>
         <label className="btn-gold mt-4 w-full cursor-pointer">
           {scanState === "upload" ? "Envoi de la photo…" : scanState === "scan" ? "Lecture du reçu…" : "Prendre / choisir une photo"}

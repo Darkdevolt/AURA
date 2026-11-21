@@ -85,7 +85,7 @@ body {
   @apply mb-2 block text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-600;
 }
 @utility input {
-  @apply block min-h-12 w-full border border-neutral-300 bg-white px-4 py-3 text-base text-ink placeholder:text-neutral-400 transition focus:border-ink focus:shadow-[inset_0_-2px_0_var(--color-gold)] focus:outline-none disabled:bg-neutral-100;
+  @apply block min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-4 py-3 text-base text-ink placeholder:text-neutral-400 transition focus:border-ink focus:shadow-[inset_0_-2px_0_var(--color-gold)] focus:outline-none disabled:bg-neutral-100;
 }
 @utility btn {
   @apply inline-flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-[14px] font-bold uppercase tracking-[0.06em] transition duration-100 select-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;

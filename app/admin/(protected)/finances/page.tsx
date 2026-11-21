@@ -140,7 +140,7 @@ export default async function FinancesPage({ searchParams }: { searchParams: Pro
             <span>Chiffre du bas : bénéfice (milliers FCFA)</span>
           </p>
         </div>
-        <div className="-mx-5 mt-3 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+        <div className="-mx-4 mt-3 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[22rem] text-[13px] tabular-nums sm:text-sm">
           <thead><tr className="border-b border-line text-left text-[10px] uppercase tracking-[0.08em] text-neutral-500"><th className="py-2">Mois</th><th className="text-right">CA</th><th className="text-right">Dépenses</th><th className="text-right">Bénéfice</th></tr></thead>
           <tbody>

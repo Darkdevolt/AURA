@@ -62,22 +62,22 @@ export default function ReportDocument({ r, vehName }: { r: ReportData; vehName:
 
           <section className="break-inside-avoid">
             <H2>Évolution mensuelle</H2>
-            <div className="flex h-36 items-end gap-2 border-b border-line">
+            <div className="flex h-36 items-end gap-0.5 border-b border-line sm:gap-2">
               {r.monthly.map((m) => (
-                <div key={m.month} className="flex h-full flex-1 items-end justify-center gap-0.5">
+                <div key={m.month} className="flex h-full min-w-0 flex-1 items-end justify-center gap-0.5">
                   <div className="w-1/2 max-w-5 bg-gold" style={{ height: `${(m.revenue / maxBar) * 100}%`, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
                   <div className="w-1/2 max-w-5 bg-ink" style={{ height: `${(m.expenses / maxBar) * 100}%`, printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }} />
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex gap-2">
-              {r.monthly.map((m) => <p key={m.month} className="flex-1 text-center text-[9px] text-neutral-500">{monthLabel(m.month)}</p>)}
+            <div className="mt-1 flex gap-0.5 sm:gap-2">
+              {r.monthly.map((m) => <p key={m.month} className="min-w-0 flex-1 overflow-hidden text-center text-[8px] text-neutral-500 sm:text-[9px]">{monthLabel(m.month)}</p>)}
             </div>
             <p className="mt-2 flex gap-4 text-[10px] text-neutral-600">
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 bg-gold" /> Chiffre d&apos;affaires</span>
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 bg-ink" /> Dépenses</span>
             </p>
-            <table className="mt-3 w-full text-[11px] tabular-nums">
+            <div className="overflow-x-auto print:overflow-visible"><table className="mt-3 w-full min-w-[30rem] text-[11px] tabular-nums print:min-w-0">
               <thead>
                 <tr className="border-b border-ink text-left text-[9px] uppercase tracking-[0.06em] text-neutral-500">
                   <th className="py-1.5">Mois</th><th className="text-right">CA site</th><th className="text-right">Autres</th><th className="text-right">CA total</th><th className="text-right">Dépenses</th><th className="text-right">Résultat</th><th className="text-right">Marge</th>
@@ -105,7 +105,7 @@ export default function ReportDocument({ r, vehName }: { r: ReportData; vehName:
                   <td className="text-right">{pct(s.margin)}</td>
                 </tr>
               </tbody>
-            </table>
+            </table></div>
           </section>
 
           <div className="grid gap-8 sm:grid-cols-2 print:grid-cols-2">
@@ -159,7 +159,7 @@ export default function ReportDocument({ r, vehName }: { r: ReportData; vehName:
 
           <section className="break-inside-avoid">
             <H2>Rentabilité de la flotte</H2>
-            <table className="w-full text-[11px] tabular-nums">
+            <div className="overflow-x-auto print:overflow-visible"><table className="w-full min-w-[30rem] text-[11px] tabular-nums print:min-w-0">
               <thead>
                 <tr className="border-b border-ink text-left text-[9px] uppercase tracking-[0.06em] text-neutral-500">
                   <th className="py-1.5">Véhicule</th><th className="text-right">CA période</th><th className="text-right">Dépenses</th><th className="text-right">Résultat</th><th className="text-right">Résultat cumulé</th><th className="text-right">Amorti</th>
@@ -177,7 +177,7 @@ export default function ReportDocument({ r, vehName }: { r: ReportData; vehName:
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
             <p className="mt-2 text-[10px] text-neutral-500">« Amorti » : part du prix d&apos;achat déjà couverte par le résultat cumulé du véhicule, et temps restant estimé au rythme moyen actuel.</p>
           </section>
 
