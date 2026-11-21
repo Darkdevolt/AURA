@@ -62,7 +62,7 @@ function Decision({ b, when, siteUrl, trackUrl }: { b: Booking; when: string; si
           })); }}>Refuser</button>
       </div>
       {showPropose && (
-        <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
           <div><label className="label" htmlFor={`pd-${b.id}`}>Jour</label><input id={`pd-${b.id}`} type="date" className="input" value={pDate} onChange={(e) => setPDate(e.target.value)} /></div>
           <div><label className="label" htmlFor={`pt-${b.id}`}>Heure</label><input id={`pt-${b.id}`} type="time" step={1800} className="input" value={pTime} onChange={(e) => setPTime(e.target.value)} /></div>
           <button type="button" disabled={pending} className="btn-primary px-4"

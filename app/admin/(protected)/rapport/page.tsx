@@ -31,7 +31,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
             </Link>
           ))}
         </div>
-        <form action="/admin/rapport" className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
+        <form action="/admin/rapport" className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <div><label className="label" htmlFor="du">Du</label><input id="du" type="date" name="du" defaultValue={period.from} className="input" /></div>
           <div><label className="label" htmlFor="au">Au</label><input id="au" type="date" name="au" defaultValue={period.to} className="input" /></div>
           <div className="col-span-2 sm:col-span-1"><label className="label" htmlFor="vehicule">Véhicule</label>
@@ -39,7 +39,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
               <option value="">Toute la flotte</option>
               {r.vehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select></div>
-          <button className="btn-outline col-span-2 self-end sm:col-span-1">Afficher</button>
+          <button className="btn-outline col-span-2 sm:col-span-1">Afficher</button>
         </form>
         <ReportActions excelHref={`/api/admin/rapport?${qs}`} />
       </div>

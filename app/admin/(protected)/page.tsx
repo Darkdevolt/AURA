@@ -131,7 +131,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
       <section className="card space-y-3">
         <h2 className="text-lg font-bold">Export CSV</h2>
-        <form action="/api/admin/export" method="get" className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form action="/api/admin/export" method="get" className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
           <div><label className="label text-sm" htmlFor="from">Du</label><input id="from" type="date" name="from" defaultValue={csvFrom} className="input" /></div>
           <div><label className="label text-sm" htmlFor="to">Au</label><input id="to" type="date" name="to" defaultValue={csvTo} className="input" /></div>
           <button className="btn-primary col-span-2 sm:col-span-1">Télécharger</button>
