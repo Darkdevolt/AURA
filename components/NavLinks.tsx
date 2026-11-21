@@ -13,7 +13,7 @@ const NAV = [
 export default function NavLinks() {
   const path = usePathname();
   return (
-    <ul className="flex gap-4 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] sm:gap-6 sm:text-[12px] sm:tracking-[0.14em]">
+    <ul className="flex gap-3.5 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.05em] sm:gap-6 sm:text-[12px] sm:tracking-[0.07em]">
       {NAV.map((n) => {
         const on = n.href === "/" ? path === "/" : path.startsWith(n.href);
         return (

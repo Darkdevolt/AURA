@@ -26,7 +26,7 @@ export default function PhoneLines({ lines, tone = "light" }: { lines: ContactLi
       {lines.map((l) => (
         <li key={l.phone} className="flex items-center gap-3 py-4">
           <div className="min-w-0 flex-1">
-            <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${dark ? "text-gold-light" : "text-gold-dark"}`}>{l.label}</p>
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${dark ? "text-gold-light" : "text-gold-dark"}`}>{l.label}</p>
             <a href={`tel:${l.phone}`} className={`mt-0.5 block truncate text-xl font-semibold tabular-nums tracking-wide ${dark ? "text-white" : "text-ink"}`}>
               {formatSenegalPhone(l.phone)}
             </a>

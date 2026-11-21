@@ -35,7 +35,7 @@ export default async function HomePage() {
             la fin de la course.
           </p>
           <a href="#reserver" className="btn-gold mt-8">Réserver une course</a>
-          <ul className="mt-12 grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-300 sm:text-[12px]">
+          <ul className="mt-12 grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.07em] text-neutral-300 sm:text-[12px]">
             {PERKS.map((p) => (
               <li key={p} className="px-2">{p}</li>
             ))}
@@ -61,7 +61,7 @@ export default async function HomePage() {
           {STEPS.map((s) => (
             <li key={s.n} className="border-b border-line py-6 sm:border-b-0 sm:border-l sm:px-6 sm:py-2 sm:first:border-l-0 sm:first:pl-0">
               <span className="font-brand gold-text text-3xl">{s.n}</span>
-              <p className="mt-3 text-[13px] font-bold uppercase tracking-[0.14em]">{s.title}</p>
+              <p className="mt-3 text-[13px] font-bold uppercase tracking-[0.07em]">{s.title}</p>
               <p className="mt-1.5 text-[15px] leading-relaxed text-neutral-600">{s.text}</p>
             </li>
           ))}

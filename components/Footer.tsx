@@ -15,7 +15,7 @@ export default function Footer({ lines }: { lines: ContactLine[] }) {
             <br />
             Du lundi au samedi, de 8h00 à 20h00.
           </p>
-          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-semibold uppercase tracking-[0.14em]">
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-semibold uppercase tracking-[0.07em]">
             <Link href="/ma-reservation" className="hover:text-white">Ma réservation</Link>
             <Link href="/a-propos" className="hover:text-white">À propos</Link>
             <Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link>
@@ -28,7 +28,7 @@ export default function Footer({ lines }: { lines: ContactLine[] }) {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <p className="wrap py-5 text-[11px] uppercase tracking-[0.2em] text-neutral-500">© {new Date().getFullYear()} Luxus Asaad · Dakar</p>
+        <p className="wrap py-5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">© {new Date().getFullYear()} Luxus Asaad · Dakar</p>
       </div>
     </footer>
   );

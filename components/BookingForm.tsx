@@ -330,7 +330,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               }}
             />
             <button type="button" onClick={useMyPosition} disabled={geoState === "loading"}
-              className="mt-2 inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.1em] text-gold-dark hover:text-ink disabled:opacity-60">
+              className="mt-2 inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.05em] text-gold-dark hover:text-ink disabled:opacity-60">
               <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
               {geoState === "loading" ? "Localisation en cours…" : "Utiliser ma position actuelle"}
             </button>
@@ -360,7 +360,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                 type="button"
                 aria-pressed={active === k}
                 onClick={() => setActive(k)}
-                className={`chip text-[13px] font-semibold uppercase tracking-[0.1em] ${active === k ? "chip-on" : "chip-off text-neutral-500"}`}
+                className={`chip text-[13px] font-semibold uppercase tracking-[0.05em] ${active === k ? "chip-on" : "chip-off text-neutral-500"}`}
               >
                 {k === "pickup" ? "A · Départ" : "B · Destination"}
               </button>
@@ -378,9 +378,9 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
             {!estimateLoading && estimate && (
               <>
                 <div className="grid grid-cols-3 divide-x divide-white/10 text-center">
-                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Distance</p><p className="text-lg font-bold">{estimate.distanceKm.toLocaleString("fr-FR")} km</p></div>
-                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Durée</p><p className="text-lg font-bold">~{estimate.durationMin} min</p></div>
-                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Prix estimé</p><p className="text-lg font-bold gold-text">{formatFcfa(estimate.price)}</p></div>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">Distance</p><p className="text-lg font-bold">{estimate.distanceKm.toLocaleString("fr-FR")} km</p></div>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">Durée</p><p className="text-lg font-bold">~{estimate.durationMin} min</p></div>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">Prix estimé</p><p className="text-lg font-bold gold-text">{formatFcfa(estimate.price)}</p></div>
                 </div>
                 <p className="mt-4 text-center text-xs text-neutral-400">
                   {estimate.airport ? "Tarif fixe Aéroport AIBD. " : ""}Prix indicatif, payé à la fin de la course.
@@ -409,7 +409,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                   onClick={() => setDate(d)}
                   className={`flex w-[4.5rem] shrink-0 snap-start flex-col items-center py-2.5 transition ${date === d ? "chip-on" : "chip-off"}`}
                 >
-                  <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
+                  <span className={`text-[10px] font-semibold uppercase tracking-[0.06em] ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
                   <span className="text-xl font-bold leading-tight">{day}</span>
                   <span className={`text-[11px] ${date === d ? "text-neutral-300" : "text-neutral-500"}`}>{month}</span>
                 </button>
@@ -442,7 +442,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                   if (!group.length) return null;
                   return (
                     <div key={label as string}>
-                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">{label as string}</p>
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">{label as string}</p>
                       <div className="cells grid-cols-4 sm:grid-cols-6">
                         {group.map((s) => (
                           <button
@@ -531,7 +531,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         <div aria-hidden className="gold-rule" />
         <div className="flex items-center gap-3 px-5 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">{estimate ? "Prix estimé" : "Prix"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">{estimate ? "Prix estimé" : "Prix"}</p>
             <p className="truncate text-lg font-semibold tabular-nums">
               {estimate ? <span className="gold-text">{formatFcfa(estimate.price)}</span> : <span className="text-sm font-normal text-neutral-400">Indiquez votre trajet</span>}
             </p>

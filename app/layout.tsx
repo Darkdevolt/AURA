@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Saira } from "next/font/google";
+import { Goldman } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BRAND } from "@/lib/brand";
@@ -8,8 +8,8 @@ import { validLines } from "@/lib/phone";
 import { getSettings } from "@/lib/server-data";
 import "./globals.css";
 
-// Police du logo : Saira (titres en version élargie, texte en largeur normale)
-const saira = Saira({ subsets: ["latin"], axes: ["wdth"], variable: "--font-saira", display: "swap" });
+// Police du logo Luxus Asaad : Goldman
+const goldman = Goldman({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-goldman", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL()),
@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const settings = await getSettings();
   const lines = validLines(settings.contact_lines);
   return (
-    <html lang="fr" className={saira.variable}>
+    <html lang="fr" className={goldman.variable}>
       <body className="flex min-h-dvh flex-col antialiased">
         <a href="#contenu" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[2000] focus: focus:bg-white focus:px-3 focus:py-2">
           Aller au contenu

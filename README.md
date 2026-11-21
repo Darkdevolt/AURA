@@ -114,7 +114,8 @@ Pour passer à 2 ou 3 voitures : Réglages → « Nombre de véhicules ».
 - `public/logo-mark-light.png` : lion + couronne, version claire (en-tête) ; `public/lion-light.png` : filigrane de l'accueil
 - `app/icon.png`, `app/apple-icon.png` : favicon et icône d'écran d'accueil
 - `app/opengraph-image.jpg` : image affichée quand on partage le lien (WhatsApp, Facebook…)
-- Palette noir / or tirée du logo : variables `--color-*` en haut de `app/globals.css`
+- Police : **Goldman** (celle du logo), chargée via `next/font` dans `app/layout.tsx`
+- Palette noir / blanc / or tirée du logo : variables `--color-*` et dégradés `--gold-grad` / `--ink-grad` en haut de `app/globals.css`
 
 ## Structure
 

@@ -8,7 +8,7 @@
   --color-gold-light: #e5b33a;
   --color-gold-dark: #8a5e08;
   --color-line: #e5e5e5;
-  --font-sans: var(--font-saira), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans: var(--font-goldman), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --radius-none: 0;
 }
 
@@ -35,13 +35,12 @@ body {
 @utility wrap {
   @apply mx-auto w-full max-w-3xl px-5;
 }
-/* Titres : même police que le logo (Saira élargie, très grasse, capitales) */
+/* Titres : police du logo (Goldman, gras, capitales) */
 @utility font-brand {
-  font-family: var(--font-saira), sans-serif;
-  font-stretch: 125%;
-  font-weight: 800;
+  font-family: var(--font-goldman), sans-serif;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 @utility gold-text {
   background: var(--gold-grad);
@@ -63,13 +62,13 @@ body {
   @apply border border-line bg-white p-5 sm:p-6;
 }
 @utility label {
-  @apply mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-neutral-600;
+  @apply mb-2 block text-[12px] font-semibold uppercase tracking-[0.06em] text-neutral-600;
 }
 @utility input {
   @apply block min-h-12 w-full border border-neutral-300 bg-white px-4 py-3 text-base text-ink placeholder:text-neutral-400 transition focus:border-ink focus:shadow-[inset_0_-2px_0_var(--color-gold)] focus:outline-none disabled:bg-neutral-100;
 }
 @utility btn {
-  @apply inline-flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-[14px] font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-[14px] font-bold uppercase tracking-[0.06em] transition disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
   @apply btn bg-ink text-white hover:bg-ink-soft;
@@ -99,7 +98,7 @@ body {
   @apply grid gap-px border border-line bg-line;
 }
 @utility eyebrow {
-  @apply text-[11px] font-semibold uppercase tracking-[0.25em] text-gold-dark;
+  @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-dark;
 }
 @utility alert-error {
   @apply border-l-2 border-rose-600 bg-rose-50 px-4 py-3 text-[15px] text-rose-900;

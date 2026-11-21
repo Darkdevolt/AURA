@@ -16,7 +16,7 @@ export default function Header({ line }: { line?: ContactLine }) {
         </Link>
         {line && (
           <a href={`tel:${line.phone}`} aria-label={`Appeler le ${line.phone}`}
-            className="inline-flex h-10 items-center gap-2 bg-gold-grad px-4 text-[12px] font-bold uppercase tracking-[0.12em] text-ink">
+            className="inline-flex h-10 items-center gap-2 bg-gold-grad px-4 text-[12px] font-bold uppercase tracking-[0.06em] text-ink">
             <PhoneIcon className="h-4 w-4" /> Appeler
           </a>
         )}
