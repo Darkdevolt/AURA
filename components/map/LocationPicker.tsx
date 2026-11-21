@@ -42,6 +42,7 @@ export default function LocationPicker({ kind, value, other, note: initialNote =
   const [locating, setLocating] = useState(false);
   const [geoMsg, setGeoMsg] = useState("");
   const [note, setNote] = useState(initialNote);
+  const [showNote, setShowNote] = useState(Boolean(initialNote));
   const seq = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextLookup = useRef(Boolean(value));
@@ -130,9 +131,9 @@ export default function LocationPicker({ kind, value, other, note: initialNote =
   const otherPin = other ? { lat: other.lat, lng: other.lng, kind: (pickup ? "B" : "A") as "A" | "B" } : null;
 
   return (
-    <div className="fixed inset-0 z-[2000] flex flex-col bg-white" role="dialog" aria-modal="true" aria-label={pickup ? "Choisir le point de départ" : "Choisir la destination"}>
+    <div className="fixed inset-0 z-[2000] flex h-dvh flex-col overflow-hidden bg-white" role="dialog" aria-modal="true" aria-label={pickup ? "Choisir le point de départ" : "Choisir la destination"}>
       {/* En-tête */}
-      <div className="relative z-[2] bg-ink px-4 pb-3 pt-3 text-white">
+      <div className="relative z-[2] shrink-0 bg-ink px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-white">
         <div className="flex items-center gap-3">
           <button type="button" onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/20" aria-label="Fermer">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><path d="M15 18l-6-6 6-6" /></svg>
@@ -158,7 +159,7 @@ export default function LocationPicker({ kind, value, other, note: initialNote =
       </div>
 
       {/* Carte */}
-      <div className="relative isolate flex-1 overflow-hidden">
+      <div className="relative isolate min-h-0 flex-1 overflow-hidden">
         <PickerMap initial={start} initialZoom={value ? 18 : other ? 15 : 13} layer={layer} flyTo={flyTo} user={user} other={otherPin} onMove={onMove} />
 
         {/* Repère fixe au centre (la pointe désigne le point exact) */}
@@ -197,7 +198,7 @@ export default function LocationPicker({ kind, value, other, note: initialNote =
       </div>
 
       {/* Panneau de validation */}
-      <div className="relative z-[2] border-t border-line bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-6px_20px_rgb(0_0_0/0.08)]">
+      <div className="relative z-[2] shrink-0 border-t border-line bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-6px_20px_rgb(0_0_0/0.08)]">
         <div className="flex items-start gap-3">
           <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center text-xs font-bold ${pickup ? "bg-ink text-gold-light" : "bg-gold-grad text-ink"}`}>{pickup ? "A" : "B"}</span>
           <div className="min-w-0 flex-1">
@@ -207,13 +208,19 @@ export default function LocationPicker({ kind, value, other, note: initialNote =
             </p>
           </div>
         </div>
-        {pickup && (
-          <div className="mt-3">
+        {pickup && !showNote && (
+          <button type="button" onClick={() => setShowNote(true)}
+            className="mt-1 min-h-10 text-[12px] font-semibold uppercase tracking-[0.05em] text-gold-dark">
+            + Ajouter un repère pour le chauffeur
+          </button>
+        )}
+        {pickup && showNote && (
+          <div className="mt-2">
             <label htmlFor="picker-note" className="label">Repère pour le chauffeur <span className="font-normal normal-case tracking-normal text-neutral-500">(facultatif)</span></label>
-            <input id="picker-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={note} onChange={(e) => setNote(e.target.value)} />
+            <input id="picker-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={note} onChange={(e) => setNote(e.target.value)} autoFocus={!initialNote} />
           </div>
         )}
-        <button type="button" onClick={confirm} disabled={moving} className="btn-gold mt-3 w-full">
+        <button type="button" onClick={confirm} disabled={moving} className="btn-gold mt-2 w-full">
           {pickup ? "Valider le départ ici" : "Valider la destination ici"}
         </button>
       </div>
