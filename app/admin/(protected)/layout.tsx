@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!admin) {
     const { data } = await (await supabaseSession()).auth.getUser();
     return (
-      <div className="card space-y-3">
+      <div className="wrap mt-6 card space-y-3">
         <h1 className="text-xl font-bold">Accès refusé</h1>
         <p className="text-[15px]">
           Le compte <strong>{data.user?.email ?? "?"}</strong> n&apos;est pas administrateur. Ajoutez-le à la table
@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
   return (
-    <div>
+    <div className="wrap py-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <nav aria-label="Administration" className="flex flex-wrap gap-1.5">
           {NAV.map((n) => (

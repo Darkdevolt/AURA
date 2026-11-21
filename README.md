@@ -63,7 +63,7 @@ npm run build                # build de production
 
 ### Base de données
 
-Appliquer `supabase/migrations/0001_init.sql` sur le projet Supabase (SQL Editor → coller → Run, ou `supabase db push`).
+Appliquer dans l'ordre `supabase/migrations/0001_init.sql` puis `0002_contact_lines.sql` sur le projet Supabase (SQL Editor → coller → Run, ou `supabase db push`).
 
 ## Variables d'environnement
 
@@ -101,7 +101,9 @@ puis mettre la nouvelle valeur dans Vercel et redéployer.
 ## Modifier les tarifs, horaires et numéros
 
 Connectez-vous à `/admin` → **Réglages**. Les changements s'appliquent immédiatement (estimation, créneaux, WhatsApp).
-**Premier réglage à faire : le numéro WhatsApp de l'entreprise** (valeur provisoire `+221 77 000 00 00`).
+**Premiers réglages à faire :**
+- les lignes « Appeler pour réserver » (ex. « Asaad 1 » + son numéro ; ajoutez « Asaad 2 » le jour où une deuxième voiture arrive) ;
+- le numéro WhatsApp qui reçoit les réservations (valeur provisoire `+221 77 000 00 00`).
 
 Pour passer à 2 ou 3 voitures : Réglages → « Nombre de véhicules ».
 

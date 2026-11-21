@@ -1,3 +1,5 @@
+import type { ContactLine } from "./types";
+
 /**
  * Numéros mobiles sénégalais : +221 7X XXX XX XX (70, 71, 75, 76, 77, 78).
  * Retourne le format E.164 « +2217XXXXXXXX » ou null.
@@ -20,4 +22,13 @@ export function formatSenegalPhone(e164: string): string {
 /** Chiffres seuls pour wa.me */
 export function waDigits(phone: string): string {
   return phone.replace(/\D/g, "");
+}
+
+
+/** Lignes valides uniquement (numéro sénégalais correct) */
+export function validLines(lines: unknown): ContactLine[] {
+  if (!Array.isArray(lines)) return [];
+  return lines
+    .map((l) => ({ label: String(l?.label ?? "").trim().slice(0, 40), phone: normalizeSenegalPhone(String(l?.phone ?? "")) }))
+    .filter((l): l is ContactLine => !!l.phone && !!l.label);
 }

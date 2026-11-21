@@ -54,10 +54,21 @@ export default function SettingsForm({ s }: { s: Settings }) {
         <Num name="vehicles" label="Nombre de véhicules" value={s.vehicles} />
       </fieldset>
 
+      <fieldset className="card space-y-3">
+        <legend className="px-1 text-lg font-bold">Lignes « Appeler pour réserver »</legend>
+        <p className="text-sm text-neutral-600">Affichées sur l&apos;accueil, la page Contact et en bas de chaque page (ex. « Asaad 1 », « Asaad 2 »). Laissez vide pour retirer une ligne.</p>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="grid grid-cols-[1fr_1.4fr] gap-2">
+            <input name={`line_label_${i}`} aria-label={`Nom de la ligne ${i + 1}`} placeholder={`Asaad ${i + 1}`} defaultValue={s.contact_lines[i]?.label ?? ""} className="input" maxLength={40} />
+            <input name={`line_phone_${i}`} aria-label={`Numéro de la ligne ${i + 1}`} type="tel" placeholder="+221 7X XXX XX XX" defaultValue={s.contact_lines[i] ? formatSenegalPhone(s.contact_lines[i].phone) : ""} className="input" />
+          </div>
+        ))}
+      </fieldset>
+
       <fieldset className="card grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <legend className="px-1 text-lg font-bold">Contact</legend>
-        <div><label className="label text-sm" htmlFor="whatsapp_number">Numéro WhatsApp</label><input id="whatsapp_number" name="whatsapp_number" type="tel" defaultValue={formatSenegalPhone(s.whatsapp_number)} className="input" /></div>
-        <div><label className="label text-sm" htmlFor="phone_number">Téléphone</label><input id="phone_number" name="phone_number" type="tel" defaultValue={formatSenegalPhone(s.phone_number)} className="input" /></div>
+        <legend className="px-1 text-lg font-bold">WhatsApp des réservations</legend>
+        <div><label className="label text-sm" htmlFor="whatsapp_number">Reçoit les réservations</label><input id="whatsapp_number" name="whatsapp_number" type="tel" defaultValue={formatSenegalPhone(s.whatsapp_number)} className="input" /></div>
+        <div><label className="label text-sm" htmlFor="phone_number">Téléphone principal</label><input id="phone_number" name="phone_number" type="tel" defaultValue={formatSenegalPhone(s.phone_number)} className="input" /></div>
       </fieldset>
 
       <fieldset className="card grid grid-cols-2 gap-3">

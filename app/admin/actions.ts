@@ -92,6 +92,18 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
   patch.whatsapp_number = wa;
   patch.phone_number = tel;
 
+  const lines = [];
+  for (let i = 0; i < 4; i++) {
+    const label = String(form.get(`line_label_${i}`) ?? "").trim().slice(0, 40);
+    const raw = String(form.get(`line_phone_${i}`) ?? "").trim();
+    if (!label && !raw) continue;
+    const phone = normalizeSenegalPhone(raw);
+    if (!label || !phone) return { ok: false, message: `Ligne ${i + 1} : nom ou numéro invalide (+221 7X XXX XX XX).` };
+    lines.push({ label, phone });
+  }
+  if (!lines.length) return { ok: false, message: "Ajoutez au moins une ligne téléphonique." };
+  patch.contact_lines = lines;
+
   const { error } = await supabase.from("settings").update(patch).eq("id", true);
   if (error) return { ok: false, message: error.message };
   revalidatePath("/", "layout");

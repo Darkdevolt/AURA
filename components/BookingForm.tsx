@@ -18,7 +18,7 @@ import { bookingWhatsAppMessage, waLink, type BookingSummary } from "@/lib/whats
 const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-72 items-center justify-center rounded-xl border border-line bg-neutral-100 text-sm text-neutral-600 sm:h-80">
+    <div className="flex h-60 items-center justify-center rounded-xl border border-line bg-neutral-100 text-sm text-neutral-600 sm:h-72">
       Chargement de la carte…
     </div>
   ),
@@ -44,11 +44,11 @@ const DEFAULT_DURATION = 25;
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <section className="card" aria-labelledby={`step-${n}`}>
-      <h2 id={`step-${n}`} className="mb-3 flex items-center gap-2.5 text-lg font-bold">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-sm text-gold-light">{n}</span>
-        {title}
-      </h2>
-      <div className="space-y-3">{children}</div>
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/60 font-display text-sm font-bold text-gold-dark">{n}</span>
+        <h2 id={`step-${n}`} className="font-display text-xl font-bold">{title}</h2>
+      </div>
+      <div className="space-y-4">{children}</div>
     </section>
   );
 }
@@ -250,10 +250,16 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     const start = Date.parse(confirmation.start_at);
     return (
       <div className="space-y-4">
-        <div className="card border-gold/60 text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-gold-dark">Réservation enregistrée</p>
-          <p className="mt-2 text-4xl font-extrabold tracking-wide">{confirmation.reference}</p>
-          <p className="mt-3 text-[15px] text-neutral-700">
+        <div className="card overflow-hidden !p-0 text-center">
+          <div className="bg-gradient-to-br from-ink to-ink-soft px-5 py-6 text-white">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold text-ink">
+              <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-6 w-6"><path d="m5 12 5 5L20 7" /></svg>
+            </div>
+            <p className="mt-3 eyebrow !text-gold-light">Réservation enregistrée</p>
+            <p className="mt-1 font-display text-4xl font-bold tracking-wide">{confirmation.reference}</p>
+          </div>
+          <div className="p-5">
+          <p className="text-[15px] text-neutral-700">
             Merci {confirmation.customer_name} ! Votre demande est <strong>en attente de confirmation</strong>.
             Envoyez-la-nous sur WhatsApp pour une confirmation plus rapide.
           </p>
@@ -265,6 +271,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
           >
             Envoyer sur WhatsApp
           </a>
+          </div>
         </div>
         <div className="card">
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
@@ -303,53 +310,63 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   // ---------------------------------------------------------------- Formulaire
   return (
     <form onSubmit={submit} className="space-y-4" noValidate>
-      <Step n={1} title="Départ et destination">
-        <button type="button" className="btn-gold w-full" onClick={useMyPosition} disabled={geoState === "loading"}>
-          <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
-          {geoState === "loading" ? "Localisation en cours…" : "Utiliser ma position"}
-        </button>
-        {geoError && <p className="alert-info" role="alert">{geoError}</p>}
-
-        <AddressSearch
-          label="Point de départ"
-          placeholder="Quartier, rue, lieu connu…"
-          value={pickup}
-          onSelect={(p) => {
-            void setPoint("pickup", p, p.address);
-            setActive("dropoff");
-          }}
-        />
-        <div>
-          <label htmlFor="pickup-note" className="label">Repère / indications <span className="font-normal text-neutral-600">(facultatif)</span></label>
-          <input id="pickup-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} />
+      <Step n={1} title="Votre trajet">
+        <div className="relative space-y-4 pl-9">
+          <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-0.5 bg-gradient-to-b from-ink via-neutral-300 to-gold" />
+          <div className="relative">
+            <span aria-hidden className="absolute -left-9 top-8 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs font-bold text-gold-light">A</span>
+            <AddressSearch
+              label="Point de départ"
+              placeholder="Quartier, rue, lieu connu…"
+              value={pickup}
+              onSelect={(p) => {
+                void setPoint("pickup", p, p.address);
+                setActive("dropoff");
+              }}
+            />
+            <button type="button" onClick={useMyPosition} disabled={geoState === "loading"}
+              className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-xl px-1 text-[15px] font-semibold text-gold-dark hover:text-ink disabled:opacity-60">
+              <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+              {geoState === "loading" ? "Localisation en cours…" : "Utiliser ma position actuelle"}
+            </button>
+            {geoError && <p className="alert-info mt-1" role="alert">{geoError}</p>}
+            <div className="mt-2">
+              <label htmlFor="pickup-note" className="label">Repère / indications <span className="font-normal text-neutral-500">(facultatif)</span></label>
+              <input id="pickup-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} />
+            </div>
+          </div>
+          <div className="relative">
+            <span aria-hidden className="absolute -left-9 top-8 flex h-7 w-7 items-center justify-center rounded-full bg-gold text-xs font-bold text-ink">B</span>
+            <AddressSearch
+              label="Destination"
+              placeholder="Où allez-vous ?"
+              value={dropoff}
+              onSelect={(p) => void setPoint("dropoff", p, p.address)}
+            />
+          </div>
         </div>
-        <AddressSearch
-          label="Destination"
-          placeholder="Où allez-vous ?"
-          value={dropoff}
-          onSelect={(p) => void setPoint("dropoff", p, p.address)}
-        />
 
         <div>
-          <div className="mb-2 flex gap-2" role="group" aria-label="Point à placer sur la carte">
+          <p className="mb-2 text-sm text-neutral-600">Ou placez les repères sur la carte :</p>
+          <div className="mb-2 grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1" role="group" aria-label="Point à placer sur la carte">
             {(["pickup", "dropoff"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 aria-pressed={active === k}
                 onClick={() => setActive(k)}
-                className={`chip flex-1 ${active === k ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white"}`}
+                className={`min-h-10 rounded-lg px-2 text-sm font-semibold transition ${active === k ? "bg-white text-ink shadow-sm" : "text-neutral-600"}`}
               >
-                {k === "pickup" ? "A · Placer le départ" : "B · Placer la destination"}
+                {k === "pickup" ? "A · Départ" : "B · Destination"}
               </button>
             ))}
           </div>
           <MapPicker pickup={pickup} dropoff={dropoff} active={active} onPick={(k, p) => void setPoint(k, p)} />
-          <p className="mt-1.5 text-sm text-neutral-600">Touchez la carte pour placer le repère sélectionné, ou faites glisser les repères A et B.</p>
+          <p className="mt-1.5 text-xs text-neutral-500">Touchez la carte pour placer le repère sélectionné, ou faites-le glisser.</p>
         </div>
 
         {(estimateLoading || estimate || estimateError) && (
-          <div className="rounded-xl bg-ink p-4 text-white" aria-live="polite">
+          <div className="rounded-2xl bg-gradient-to-br from-ink to-ink-soft p-4 text-white" aria-live="polite">
             {estimateLoading && <p>Calcul de l&apos;estimation…</p>}
             {!estimateLoading && estimateError && <p className="text-rose-200">{estimateError}</p>}
             {!estimateLoading && estimate && (
@@ -357,7 +374,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div><p className="text-xs uppercase text-neutral-300">Distance</p><p className="text-lg font-bold">{estimate.distanceKm.toLocaleString("fr-FR")} km</p></div>
                   <div><p className="text-xs uppercase text-neutral-300">Durée</p><p className="text-lg font-bold">~{estimate.durationMin} min</p></div>
-                  <div><p className="text-xs uppercase text-neutral-300">Prix estimé</p><p className="text-lg font-bold text-gold-light">{formatFcfa(estimate.price)}</p></div>
+                  <div><p className="text-xs uppercase text-neutral-300">Prix estimé</p><p className="text-lg font-bold gold-text">{formatFcfa(estimate.price)}</p></div>
                 </div>
                 <p className="mt-2 text-center text-sm text-neutral-300">
                   {estimate.airport ? "Tarif fixe Aéroport AIBD. " : ""}Prix indicatif, payé à la fin de la course.
@@ -372,21 +389,28 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       <Step n={2} title="Date et heure">
         <div>
           <p className="label" id="date-label">Jour</p>
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-labelledby="date-label">
-            {dates.map((d) => (
-              <button
-                key={d}
-                type="button"
-                role="radio"
-                aria-checked={date === d}
-                onClick={() => setDate(d)}
-                className={`chip shrink-0 capitalize ${date === d ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white"}`}
-              >
-                {d === dakarDate(Date.now()) ? "Aujourd'hui" : formatDateShort(d)}
-              </button>
-            ))}
+          <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2" role="radiogroup" aria-labelledby="date-label">
+            {dates.map((d) => {
+              const [wd, day, month] = formatDateShort(d).replace(/\./g, "").split(" ");
+              const today = d === dakarDate(Date.now());
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  role="radio"
+                  aria-checked={date === d}
+                  aria-label={today ? "Aujourd'hui" : formatDateShort(d)}
+                  onClick={() => setDate(d)}
+                  className={`flex w-[4.25rem] shrink-0 snap-start flex-col items-center rounded-2xl border py-2 transition ${date === d ? "chip-on" : "chip-off"}`}
+                >
+                  <span className={`text-[11px] font-semibold uppercase ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
+                  <span className="text-xl font-bold leading-tight">{day}</span>
+                  <span className={`text-[11px] ${date === d ? "text-neutral-300" : "text-neutral-500"}`}>{month}</span>
+                </button>
+              );
+            })}
           </div>
-          <p className="mt-1 text-sm text-neutral-600">Du lundi au samedi, de 8h00 à 20h00. Réservation au moins 1 h à l&apos;avance.</p>
+          <p className="mt-1 text-xs text-neutral-500">Du lundi au samedi, de 8h00 à 20h00 · au moins 1 h à l&apos;avance.</p>
         </div>
         {date && (
           <div>
@@ -402,19 +426,34 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               <p className="alert-info">Plus aucun créneau libre ce jour-là. Choisissez un autre jour.</p>
             )}
             {!slotsLoading && slots && slots.length > 0 && (
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6" role="radiogroup" aria-labelledby="slot-label">
-                {slots.map((s) => (
-                  <button
-                    key={s.start}
-                    type="button"
-                    role="radio"
-                    aria-checked={slot === s.start}
-                    onClick={() => setSlot(s.start)}
-                    className={`chip ${slot === s.start ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white"}`}
-                  >
-                    {s.time.replace(":", "h")}
-                  </button>
-                ))}
+              <div className="space-y-3" role="radiogroup" aria-labelledby="slot-label">
+                {[
+                  ["Matin", (t: string) => t < "12:00"],
+                  ["Après-midi", (t: string) => t >= "12:00" && t < "17:00"],
+                  ["Soir", (t: string) => t >= "17:00"],
+                ].map(([label, test]) => {
+                  const group = slots.filter((s) => (test as (t: string) => boolean)(s.time));
+                  if (!group.length) return null;
+                  return (
+                    <div key={label as string}>
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-500">{label as string}</p>
+                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                        {group.map((s) => (
+                          <button
+                            key={s.start}
+                            type="button"
+                            role="radio"
+                            aria-checked={slot === s.start}
+                            onClick={() => setSlot(s.start)}
+                            className={`chip tabular-nums ${slot === s.start ? "chip-on" : "chip-off"}`}
+                          >
+                            {s.time.replace(":", "h")}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
             {!estimate && <p className="mt-2 text-sm text-neutral-600">Indiquez le départ et la destination pour des créneaux plus précis.</p>}
@@ -422,13 +461,13 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         )}
       </Step>
 
-      <Step n={3} title="Passagers et commentaire">
+      <Step n={3} title="Passagers">
         <div>
           <p className="label" id="pax-label">Nombre de passagers</p>
           <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="pax-label">
             {[1, 2, 3, 4].map((n) => (
               <button key={n} type="button" role="radio" aria-checked={passengers === n} onClick={() => setPassengers(n)}
-                className={`chip ${passengers === n ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white"}`}>
+                className={`chip ${passengers === n ? "chip-on" : "chip-off"}`}>
                 {n}
               </button>
             ))}
@@ -476,20 +515,24 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         </div>
       </Step>
 
-      <div className="card space-y-3">
-        {estimate && (
-          <p className="flex items-baseline justify-between text-[15px]">
-            <span>Prix estimé</span>
-            <strong className="text-xl">{formatFcfa(estimate.price)}</strong>
-          </p>
-        )}
-        {submitError && <p className="alert-error" role="alert">{submitError}</p>}
-        <button type="submit" className="btn-primary w-full text-lg" disabled={submitting}>
-          {submitting ? "Enregistrement…" : "Confirmer la réservation"}
-        </button>
-        <p className="text-center text-sm text-neutral-600">
-          Aucun paiement en ligne. Vous payez à la fin de la course en espèces, Wave ou Orange Money.
-        </p>
+      {submitError && <p className="alert-error" role="alert">{submitError}</p>}
+      <p className="px-2 text-center text-sm text-neutral-600">
+        Aucun paiement en ligne : vous payez à la fin de la course, en espèces, Wave ou Orange Money.
+      </p>
+
+      {/* Barre de confirmation fixe en bas de l'écran */}
+      <div className="sticky bottom-0 z-[900] -mx-4 border-t border-line bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-neutral-500">{estimate ? "Prix estimé" : "Prix"}</p>
+            <p className="truncate text-lg font-bold tabular-nums">
+              {estimate ? formatFcfa(estimate.price) : <span className="text-sm font-medium text-neutral-500">Indiquez votre trajet</span>}
+            </p>
+          </div>
+          <button type="submit" className="btn-primary shrink-0 px-5" disabled={submitting}>
+            {submitting ? "Envoi…" : "Confirmer"}
+          </button>
+        </div>
       </div>
     </form>
   );

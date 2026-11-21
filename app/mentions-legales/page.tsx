@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import PageHero from "@/components/PageHero";
 
 export const metadata: Metadata = { title: "Mentions légales et confidentialité" };
 
 export default function LegalPage() {
   return (
-    <div className="prose-la">
-      <h1 className="text-2xl font-extrabold">Mentions légales et politique de confidentialité</h1>
+    <>
+    <PageHero eyebrow="Informations" title="Mentions légales et confidentialité" />
+    <div className="wrap prose-la mt-4">
 
       <h2>Éditeur du site</h2>
       <p>Luxus Asaad — service de transport de personnes avec chauffeur (VTC), Dakar, Sénégal.</p>
@@ -53,5 +55,6 @@ export default function LegalPage() {
         réservation peut être mémorisé sur votre téléphone pour vous éviter de le ressaisir.
       </p>
     </div>
+    </>
   );
 }

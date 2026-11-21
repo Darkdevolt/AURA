@@ -5,8 +5,8 @@ export const metadata: Metadata = { title: "Connexion admin", robots: { index: f
 
 export default function LoginPage() {
   return (
-    <div className="mx-auto max-w-sm">
-      <h1 className="mb-4 text-2xl font-extrabold">Espace administrateur</h1>
+    <div className="mx-auto max-w-sm px-4 py-10">
+      <h1 className="mb-4 font-display text-3xl font-bold">Espace administrateur</h1>
       <LoginForm />
     </div>
   );

@@ -91,7 +91,7 @@ export default function MapPicker({ pickup, dropoff, active, onPick }: Props) {
   return (
     <div
       ref={el}
-      className="h-72 w-full overflow-hidden rounded-xl border border-line bg-neutral-100 sm:h-80"
+      className="h-60 w-full overflow-hidden rounded-xl border border-line bg-neutral-100 sm:h-72"
       role="application"
       aria-label="Carte : touchez pour placer le repère, ou faites-le glisser"
     />
