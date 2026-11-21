@@ -103,7 +103,7 @@ puis mettre la nouvelle valeur dans Vercel et redéployer.
 Connectez-vous à `/admin` → **Réglages**. Les changements s'appliquent immédiatement (estimation, créneaux, WhatsApp).
 **Premiers réglages à faire :**
 - les lignes « Appeler pour réserver » (ex. « Asaad 1 » + son numéro ; ajoutez « Asaad 2 » le jour où une deuxième voiture arrive) ;
-- le numéro WhatsApp qui reçoit les réservations (valeur provisoire `+221 77 000 00 00`).
+- la case « WhatsApp » de chaque ligne : la première ligne WhatsApp reçoit les réservations (par défaut Asaad 1 : +221 77 296 64 62).
 
 Pour passer à 2 ou 3 voitures : Réglages → « Nombre de véhicules ».
 

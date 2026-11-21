@@ -63,8 +63,8 @@ create table if not exists public.settings (
   min_notice_minutes smallint not null default 60,
   max_days_ahead smallint not null default 14,
   vehicles smallint not null default 1 check (vehicles between 1 and 20),
-  whatsapp_number text not null default '+221770000000',
-  phone_number text not null default '+221770000000',
+  whatsapp_number text not null default '+221772966462',
+  phone_number text not null default '+221772966462',
   max_active_per_phone smallint not null default 3,
   max_per_ip_per_day smallint not null default 6,
   updated_at timestamptz not null default now()

@@ -78,11 +78,14 @@ export const DEFAULT_SETTINGS: Settings = {
   min_notice_minutes: 60,
   max_days_ahead: 14,
   vehicles: 1,
-  whatsapp_number: "+221770000000",
-  phone_number: "+221770000000",
+  whatsapp_number: "+221772966462",
+  phone_number: "+221772966462",
   max_active_per_phone: 3,
   max_per_ip_per_day: 6,
-  contact_lines: [{ label: "Asaad 1", phone: "+221770000000", whatsapp: true }],
+  contact_lines: [
+    { label: "Asaad 1", phone: "+221772966462", whatsapp: true },
+    { label: "Asaad 1 · 2e ligne", phone: "+221765107848", whatsapp: true },
+  ],
 };
 
 export interface Booking {
