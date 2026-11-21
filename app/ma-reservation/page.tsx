@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import LookupForm from "@/components/LookupForm";
 import PageHero from "@/components/PageHero";
+import { bookingWhatsApp } from "@/lib/phone";
 import { getSettings } from "@/lib/server-data";
 
 export const metadata: Metadata = { title: "Ma réservation", robots: { index: false } };
@@ -16,7 +17,7 @@ export default async function MyBookingPage() {
       </PageHero>
       <div className="wrap mt-6">
         <Suspense>
-          <LookupForm whatsapp={settings.whatsapp_number} />
+          <LookupForm whatsapp={bookingWhatsApp(settings)} />
         </Suspense>
       </div>
     </>

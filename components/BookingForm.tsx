@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AddressSearch from "./AddressSearch";
+import { WhatsAppIcon } from "./PhoneLines";
 import type { PointKind } from "./MapPicker";
 import { isInSenegal } from "@/lib/geo";
 import { reverseGeocode } from "@/lib/nominatim";
@@ -258,19 +259,22 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
             <p className="mt-3 eyebrow !text-gold-light">Réservation enregistrée</p>
             <p className="mt-1 font-display text-4xl font-bold tracking-wide">{confirmation.reference}</p>
           </div>
-          <div className="p-5">
-          <p className="text-[15px] text-neutral-700">
-            Merci {confirmation.customer_name} ! Votre demande est <strong>en attente de confirmation</strong>.
-            Envoyez-la-nous sur WhatsApp pour une confirmation plus rapide.
-          </p>
-          <a
-            className="btn-whatsapp mt-4 w-full"
-            href={waLink(confirmation.whatsapp_number, bookingWhatsAppMessage(confirmation))}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Envoyer sur WhatsApp
-          </a>
+          <div className="p-5 text-left">
+            <p className="eyebrow">Dernière étape</p>
+            <p className="mt-1 font-display text-xl font-bold">Envoyez votre réservation sur WhatsApp</p>
+            <p className="mt-2 text-[15px] text-neutral-700">
+              Merci {confirmation.customer_name} ! WhatsApp va s&apos;ouvrir avec le message déjà rempli :
+              appuyez simplement sur <strong>Envoyer</strong>. Nous vous confirmons la course très vite.
+            </p>
+            <a
+              className="btn-whatsapp mt-4 w-full animate-[pulse_2.5s_ease-in-out_3] text-lg"
+              href={waLink(confirmation.whatsapp_number, bookingWhatsAppMessage(confirmation))}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <WhatsAppIcon className="h-6 w-6" /> Envoyer sur WhatsApp
+            </a>
+            <p className="mt-2 text-center text-xs text-neutral-500">Envoyé au {formatSenegalPhone(confirmation.whatsapp_number)}</p>
           </div>
         </div>
         <div className="card">

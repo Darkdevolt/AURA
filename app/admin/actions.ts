@@ -86,11 +86,6 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
   patch.open_time = open;
   patch.close_time = close;
   patch.open_days = form.getAll("open_days").map(Number).filter((d) => d >= 0 && d <= 6);
-  const wa = normalizeSenegalPhone(String(form.get("whatsapp_number")));
-  const tel = normalizeSenegalPhone(String(form.get("phone_number")));
-  if (!wa || !tel) return { ok: false, message: "Numéro WhatsApp ou téléphone invalide (+221 7X XXX XX XX)." };
-  patch.whatsapp_number = wa;
-  patch.phone_number = tel;
 
   const lines = [];
   for (let i = 0; i < 4; i++) {
@@ -99,10 +94,14 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
     if (!label && !raw) continue;
     const phone = normalizeSenegalPhone(raw);
     if (!label || !phone) return { ok: false, message: `Ligne ${i + 1} : nom ou numéro invalide (+221 7X XXX XX XX).` };
-    lines.push({ label, phone });
+    lines.push({ label, phone, whatsapp: form.get(`line_wa_${i}`) === "on" });
   }
   if (!lines.length) return { ok: false, message: "Ajoutez au moins une ligne téléphonique." };
+  if (!lines.some((l) => l.whatsapp))
+    return { ok: false, message: "Cochez « WhatsApp » sur au moins une ligne : c'est elle qui reçoit les réservations." };
   patch.contact_lines = lines;
+  patch.phone_number = lines[0].phone;
+  patch.whatsapp_number = lines.find((l) => l.whatsapp)!.phone;
 
   const { error } = await supabase.from("settings").update(patch).eq("id", true);
   if (error) return { ok: false, message: error.message };

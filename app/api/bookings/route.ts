@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { SERVER_RPC_TOKEN } from "@/lib/env";
 import { estimateRoute, isInSenegal } from "@/lib/geo";
 import { clientIpHash, jsonError, parseLatLng, str } from "@/lib/http";
-import { normalizeSenegalPhone } from "@/lib/phone";
+import { bookingWhatsApp, normalizeSenegalPhone } from "@/lib/phone";
 import { computePrice } from "@/lib/pricing";
 import { getBusy, getSettings } from "@/lib/server-data";
 import { blockMinutes, checkStart, SLOT_ERROR_MESSAGES } from "@/lib/slots";
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
       distance_km: route.distanceKm,
       duration_min: route.durationMin,
       estimated_price: price,
-      whatsapp_number: settings.whatsapp_number,
+      whatsapp_number: bookingWhatsApp(settings),
     });
   } catch (e) {
     console.error("bookings POST", e);

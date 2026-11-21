@@ -41,7 +41,7 @@ export default function PhoneLines({ lines, tone = "light" }: { lines: ContactLi
           >
             <PhoneIcon />
           </a>
-          <a
+          {l.whatsapp && <a
             href={waLink(l.phone, "Bonjour Luxus Asaad, je souhaite réserver une course.")}
             target="_blank"
             rel="noopener noreferrer"
@@ -49,7 +49,7 @@ export default function PhoneLines({ lines, tone = "light" }: { lines: ContactLi
             aria-label={`Écrire sur WhatsApp à ${l.label}`}
           >
             <WhatsAppIcon />
-          </a>
+          </a>}
         </li>
       ))}
     </ul>

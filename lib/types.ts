@@ -36,6 +36,7 @@ export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 export interface ContactLine {
   label: string;
   phone: string; // E.164 « +2217XXXXXXXX »
+  whatsapp: boolean; // numéro joignable sur WhatsApp
 }
 
 export interface Settings {
@@ -81,7 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   phone_number: "+221770000000",
   max_active_per_phone: 3,
   max_per_ip_per_day: 6,
-  contact_lines: [{ label: "Asaad 1", phone: "+221770000000" }],
+  contact_lines: [{ label: "Asaad 1", phone: "+221770000000", whatsapp: true }],
 };
 
 export interface Booking {

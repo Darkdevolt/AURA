@@ -29,6 +29,15 @@ export function waDigits(phone: string): string {
 export function validLines(lines: unknown): ContactLine[] {
   if (!Array.isArray(lines)) return [];
   return lines
-    .map((l) => ({ label: String(l?.label ?? "").trim().slice(0, 40), phone: normalizeSenegalPhone(String(l?.phone ?? "")) }))
+    .map((l) => ({
+      label: String(l?.label ?? "").trim().slice(0, 40),
+      phone: normalizeSenegalPhone(String(l?.phone ?? "")),
+      whatsapp: l?.whatsapp !== false,
+    }))
     .filter((l): l is ContactLine => !!l.phone && !!l.label);
+}
+
+/** Numéro WhatsApp qui reçoit les réservations : la première ligne WhatsApp. */
+export function bookingWhatsApp(s: { contact_lines?: unknown; whatsapp_number: string }): string {
+  return validLines(s.contact_lines).find((l) => l.whatsapp)?.phone ?? s.whatsapp_number;
 }

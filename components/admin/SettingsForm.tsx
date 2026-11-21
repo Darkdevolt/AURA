@@ -56,19 +56,21 @@ export default function SettingsForm({ s }: { s: Settings }) {
 
       <fieldset className="card space-y-3">
         <legend className="px-1 text-lg font-bold">Lignes « Appeler pour réserver »</legend>
-        <p className="text-sm text-neutral-600">Affichées sur l&apos;accueil, la page Contact et en bas de chaque page (ex. « Asaad 1 », « Asaad 2 »). Laissez vide pour retirer une ligne.</p>
+        <p className="text-sm text-neutral-600">
+          Affichées sur l&apos;accueil, la page Contact et en bas de chaque page (ex. « Asaad 1 », « Asaad 2 »). Laissez vide
+          pour retirer une ligne. Cochez « WhatsApp » si le numéro est sur WhatsApp : <strong>la première ligne WhatsApp reçoit
+          les réservations</strong> envoyées par les clients.
+        </p>
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="grid grid-cols-[1fr_1.4fr] gap-2">
+          <div key={i} className="grid grid-cols-[1fr_1.4fr] gap-2 border-t border-line pt-3 first:border-0 first:pt-0">
             <input name={`line_label_${i}`} aria-label={`Nom de la ligne ${i + 1}`} placeholder={`Asaad ${i + 1}`} defaultValue={s.contact_lines[i]?.label ?? ""} className="input" maxLength={40} />
             <input name={`line_phone_${i}`} aria-label={`Numéro de la ligne ${i + 1}`} type="tel" placeholder="+221 7X XXX XX XX" defaultValue={s.contact_lines[i] ? formatSenegalPhone(s.contact_lines[i].phone) : ""} className="input" />
+            <label className="col-span-2 flex min-h-10 items-center gap-2 text-sm">
+              <input type="checkbox" name={`line_wa_${i}`} defaultChecked={s.contact_lines[i] ? s.contact_lines[i].whatsapp !== false : i === 0} className="h-5 w-5" />
+              Ce numéro est sur WhatsApp
+            </label>
           </div>
         ))}
-      </fieldset>
-
-      <fieldset className="card grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <legend className="px-1 text-lg font-bold">WhatsApp des réservations</legend>
-        <div><label className="label text-sm" htmlFor="whatsapp_number">Reçoit les réservations</label><input id="whatsapp_number" name="whatsapp_number" type="tel" defaultValue={formatSenegalPhone(s.whatsapp_number)} className="input" /></div>
-        <div><label className="label text-sm" htmlFor="phone_number">Téléphone principal</label><input id="phone_number" name="phone_number" type="tel" defaultValue={formatSenegalPhone(s.phone_number)} className="input" /></div>
       </fieldset>
 
       <fieldset className="card grid grid-cols-2 gap-3">
