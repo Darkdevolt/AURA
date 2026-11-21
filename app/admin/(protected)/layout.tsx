@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const NAV = [
   { href: "/admin", label: "Réservations" },
   { href: "/admin/finances", label: "Finances" },
+  { href: "/admin/rapport", label: "Rapport" },
   { href: "/admin/depenses", label: "Dépenses & revenus" },
   { href: "/admin/flotte", label: "Flotte" },
   { href: "/admin/plages", label: "Plages" },
@@ -32,7 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
   return (
     <div className="wrap py-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
         <nav aria-label="Administration" className="flex flex-wrap gap-1.5">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} className="inline-flex min-h-10 items-center border border-line px-3 text-[11px] font-semibold uppercase tracking-[0.05em] hover:border-ink">{n.label}</Link>

@@ -5,7 +5,7 @@ import type { ContactLine } from "@/lib/types";
 
 export default function Footer({ lines }: { lines: ContactLine[] }) {
   return (
-    <footer className="bg-ink-grad text-neutral-400">
+    <footer className="bg-ink-grad text-neutral-400 print:hidden">
       <div aria-hidden className="gold-rule" />
       <div className="wrap grid gap-10 py-12 sm:grid-cols-2">
         <div>

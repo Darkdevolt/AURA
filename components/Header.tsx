@@ -6,7 +6,7 @@ import type { ContactLine } from "@/lib/types";
 
 export default function Header({ line }: { line?: ContactLine }) {
   return (
-    <header className="sticky top-0 z-[1000] bg-ink text-white">
+    <header className="sticky top-0 z-[1000] bg-ink text-white print:hidden">
       <div className="wrap flex items-center justify-between gap-3 pt-3">
         <Link href="/" className="flex min-w-0 items-center gap-2" aria-label="Luxus Asaad — accueil">
           <Logo height={32} />

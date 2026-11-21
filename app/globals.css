@@ -189,3 +189,19 @@ body {
   .la-user-dot { animation: none; }
   .la-center-pin, .la-center-shadow { transition: none; }
 }
+
+/* ------------------------------------------------------------------ Impression (rapport PDF) */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@media print {
+  html, body { background: #fff !important; }
+  .wrap { max-width: none !important; padding: 0 !important; }
+  .report { box-shadow: none !important; }
+  .bg-ink-grad, .bg-gold-grad, .gold-rule, .bg-gold, .bg-ink, .gold-text {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .break-inside-avoid { break-inside: avoid; }
+}

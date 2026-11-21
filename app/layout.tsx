@@ -41,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Aller au contenu
         </a>
         <Header line={lines[0]} />
-        <main id="contenu" className="flex-1 pb-20">{children}</main>
+        <main id="contenu" className="flex-1 pb-20 print:pb-0">{children}</main>
         <Footer lines={lines} />
       </body>
     </html>
