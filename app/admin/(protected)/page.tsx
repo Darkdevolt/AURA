@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BookingCard from "@/components/admin/BookingCard";
+import DayNav from "@/components/admin/DayNav";
 import { SITE_URL } from "@/lib/env";
 import { waveEnabled } from "@/lib/wave";
 import { formatFcfa } from "@/lib/pricing";
@@ -18,11 +19,11 @@ const BAR: Record<BookingStatus, string> = {
 
 function Stat({ label, count, revenue }: { label: string; count: number; revenue: number }) {
   return (
-    <div className="card p-3 text-center sm:p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold">{count}</p>
-      <p className="text-xs text-neutral-600">course{count > 1 ? "s" : ""}</p>
-      <p className="mt-1 text-sm font-bold text-gold-dark">{formatFcfa(revenue)}</p>
+    <div className="border border-line bg-white px-2 py-3 text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-500">{label}</p>
+      <p className="mt-0.5 text-2xl font-extrabold leading-tight">{count}</p>
+      <p className="text-[11px] text-neutral-500">course{count > 1 ? "s" : ""}</p>
+      <p className="mt-1 text-[12px] font-bold tabular-nums text-gold-dark">{formatFcfa(revenue)}</p>
     </div>
   );
 }
@@ -87,24 +88,17 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       <p className="-mt-3 text-xs text-neutral-600">Courses terminées. Chiffre d&apos;affaires = prix payé (ou estimé s&apos;il n&apos;a pas été saisi).</p>
 
       <section className="card space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link className="chip border-neutral-300" href={`/admin?date=${addDays(date, -1)}`} aria-label="Jour précédent">←</Link>
-          <form className="flex flex-1 items-center justify-center gap-2" action="/admin">
-            <input type="date" name="date" defaultValue={date} className="input max-w-44" aria-label="Choisir une date" />
-            <button className="chip border-neutral-300">Voir</button>
-          </form>
-          <Link className="chip border-neutral-300" href={`/admin?date=${addDays(date, 1)}`} aria-label="Jour suivant">→</Link>
-        </div>
-        <h1 className="text-center text-lg font-bold capitalize">
+        <DayNav date={date} prev={addDays(date, -1)} next={addDays(date, 1)} />
+        <h1 className="text-center text-[15px] font-bold capitalize">
           {formatDateLong(Date.parse(dayStart))} {date === today && <span className="text-gold-dark">(aujourd&apos;hui)</span>}
         </h1>
         {date !== today && <p className="text-center"><Link href="/admin" className="text-sm underline">Revenir à aujourd&apos;hui</Link></p>}
 
         {/* Vue chronologique */}
-        <div aria-label="Vue chronologique" className="relative mt-2 h-16 bg-neutral-100">
+        <div aria-label="Vue chronologique" className="relative mt-2 h-16 overflow-hidden bg-neutral-100">
           {hours.map((h) => (
             <div key={h} className="absolute top-0 h-full border-l border-neutral-300" style={{ left: `${((h * 60 - open) / span) * 100}%` }}>
-              <span className="absolute -top-0.5 left-0.5 text-[10px] text-neutral-500">{h}h</span>
+              {h < hours[hours.length - 1] && <span className="absolute -top-0.5 left-0.5 text-[10px] text-neutral-500">{h}h</span>}
             </div>
           ))}
           {(blocksRes.data ?? []).map((s) => (
@@ -120,14 +114,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         <p className="text-xs text-neutral-600">Barres colorées : réservations (durée bloquée). Hachures : plages bloquées.</p>
       </section>
 
-      <section className="space-y-3" aria-label="Réservations du jour">
-        {bookings.length === 0 && <p className="card text-center text-neutral-700">Aucune réservation ce jour-là.</p>}
+      <section className="grid items-start gap-3 lg:grid-cols-2" aria-label="Réservations du jour">
+        {bookings.length === 0 && <p className="card text-center text-neutral-700 lg:col-span-2">Aucune réservation ce jour-là.</p>}
         {bookings.map((b) => <BookingCard key={b.id} b={b} {...fleet} />)}
       </section>
 
       {pendingOther.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-bold">À confirmer (autres jours)</h2>
+        <section className="grid items-start gap-3 lg:grid-cols-2">
+          <h2 className="text-[15px] font-bold uppercase tracking-[0.05em] lg:col-span-2">À confirmer (autres jours)</h2>
           {pendingOther.map((b) => <BookingCard key={b.id} b={b} showDate {...fleet} />)}
         </section>
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -7,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
  * sur téléphone, l'écran reste libre pour le formulaire et le clavier.
  */
 export default function HeaderShell({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
 
@@ -30,6 +32,8 @@ export default function HeaderShell({ children }: { children: React.ReactNode })
     };
   }, []);
 
+  // L'administration a sa propre barre
+  if (path.startsWith("/admin")) return null;
   return (
     <header
       data-hidden={hidden}

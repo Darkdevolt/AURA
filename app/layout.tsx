@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Goldman } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PublicOnly from "@/components/PublicOnly";
 import { BRAND } from "@/lib/brand";
 import { SITE_URL } from "@/lib/env";
 import { validLines } from "@/lib/phone";
@@ -49,7 +50,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <Header line={lines[0]} />
         <main id="contenu" className="flex-1 pb-20 print:pb-0">{children}</main>
-        <Footer lines={lines} />
+        <PublicOnly>
+          <Footer lines={lines} />
+        </PublicOnly>
         {/* Safari iOS : active le retour visuel au toucher (:active) */}
         <script dangerouslySetInnerHTML={{ __html: "document.addEventListener('touchstart',function(){},{passive:true})" }} />
       </body>

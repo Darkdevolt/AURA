@@ -1,20 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import AdminBar from "@/components/admin/AdminBar";
 import { requireAdmin, supabaseSession } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 
 export const metadata: Metadata = { title: "Administration", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
-
-const NAV = [
-  { href: "/admin", label: "Réservations" },
-  { href: "/admin/finances", label: "Finances" },
-  { href: "/admin/rapport", label: "Rapport" },
-  { href: "/admin/depenses", label: "Dépenses & revenus" },
-  { href: "/admin/flotte", label: "Flotte" },
-  { href: "/admin/plages", label: "Plages" },
-  { href: "/admin/reglages", label: "Réglages" },
-];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
@@ -32,18 +22,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
   return (
-    <div className="wrap py-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <nav aria-label="Administration" className="flex flex-wrap gap-1.5">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="inline-flex min-h-10 items-center border border-line px-3 text-[11px] font-semibold uppercase tracking-[0.05em] hover:border-ink">{n.label}</Link>
-          ))}
-        </nav>
-        <form action={signOut}>
-          <button className="inline-flex min-h-10 items-center px-3 text-[11px] font-semibold uppercase tracking-[0.05em] text-neutral-500 underline-offset-4 hover:underline" title={admin.user.email}>Déconnexion</button>
-        </form>
-      </div>
-      {children}
-    </div>
+    <>
+      <AdminBar email={admin.user.email ?? ""} signOut={signOut} />
+      <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6">{children}</div>
+    </>
   );
 }
