@@ -68,23 +68,22 @@ Appliquer dans l'ordre `supabase/migrations/0001_init.sql` puis `0002_contact_li
 
 ## Variables d'environnement
 
+**Une seule variable est obligatoire** sur Vercel (Project → Settings → Environment Variables) :
+
 | Nom | Où la trouver | Secret ? |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | non |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys → clé `anon` / *publishable* | non (publique par conception) |
-| `SERVER_RPC_TOKEN` | SQL : `select server_token from luxus_private.app_secrets;` | **oui** (type *Sensitive* sur Vercel) |
-| `NEXT_PUBLIC_SITE_URL` | URL publique du site, ex. `https://luxus-asaad.vercel.app` | non |
-| `IP_HASH_SALT` | facultatif : chaîne aléatoire (sinon le jeton serveur sert de sel) | oui |
+| `SERVER_RPC_TOKEN` | SQL : `select server_token from luxus_private.app_secrets;` | **oui** (type *Sensitive*) |
 
-Aucune clé `service_role` n'est nécessaire. Ne mettez jamais de secret dans le code : uniquement dans Vercel
-(Project → Settings → Environment Variables) ou dans `.env.local` (ignoré par git).
+Facultatives (des valeurs par défaut sont dans `lib/env.ts`) :
 
-Pour changer le jeton serveur :
-```sql
-update luxus_private.app_secrets set server_token = replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
-select server_token from luxus_private.app_secrets;
-```
-puis mettre la nouvelle valeur dans Vercel et redéployer.
+| Nom | Valeur par défaut |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase utilisé |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | clé *publishable* du projet (publique par conception) |
+| `NEXT_PUBLIC_SITE_URL` | `https://luxus-asaad.vercel.app` |
+| `IP_HASH_SALT` | le jeton serveur sert de sel |
+
+Aucune clé `service_role` n'est nécessaire. Ne mettez jamais de secret dans le code.
 
 ## Créer le compte admin
 
