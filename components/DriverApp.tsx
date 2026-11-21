@@ -30,6 +30,8 @@ interface Course {
   payment_method: string | null;
   status: BookingStatus;
   mine: boolean;
+  service?: string;
+  noshow_wait_minutes?: number;
 }
 
 function Login({ onDone }: { onDone: () => void }) {
@@ -79,6 +81,16 @@ function CourseCard({ c, sharing, onShare, onUpdate }: {
     setBusy(false);
   };
   const done = c.status === "completed" || c.status === "no_show";
+  const wait = c.noshow_wait_minutes ?? 10;
+  const noShowAt = start + wait * 60_000;
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (done || Date.now() > noShowAt) return;
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
+  }, [done, noShowAt]);
+  const canNoShow = now >= noShowAt;
+  const noShowMsg = `Bonjour ${c.customer_name}, votre chauffeur Luxus Asaad vous a attendu ${wait} minutes au point de rendez-vous (${c.pickup_address}) sans parvenir à vous joindre. La course ${c.reference} est annulée. Pour réserver à nouveau, répondez à ce message.`;
   return (
     <article className="border border-line">
       <header className="flex items-center justify-between gap-2 bg-ink px-4 py-3 text-white">
@@ -87,6 +99,9 @@ function CourseCard({ c, sharing, onShare, onUpdate }: {
       </header>
       <div className="space-y-3 p-4 text-[15px]">
         <p className="font-semibold">{c.customer_name} · {c.passengers} pass. <span className="font-normal text-neutral-500">({c.reference})</span></p>
+        {c.service && c.service !== "course" && (
+          <p className="inline-block bg-gold-grad px-2 py-0.5 text-[11px] font-bold uppercase text-ink">{c.service === "journee" ? "Mise à disposition — journée" : "Mise à disposition — demi-journée"}</p>
+        )}
         <div>
           <p><span className="font-semibold text-neutral-500">A</span> {c.pickup_address}</p>
           {c.pickup_note && <p className="ml-4 text-neutral-700">↳ {c.pickup_note}</p>}
@@ -112,7 +127,11 @@ function CourseCard({ c, sharing, onShare, onUpdate }: {
             {(c.status === "pending" || c.status === "confirmed") && (
               <div className="grid grid-cols-2 gap-2">
                 <button className="btn-gold" disabled={busy} onClick={() => { onShare(c.id); void act("in_progress"); }}>Client à bord</button>
-                <button className="btn-outline" disabled={busy} onClick={() => { if (confirm("Le client ne s'est pas présenté ?")) void act("no_show"); }}>Client absent</button>
+                <button className="btn-outline" disabled={busy || !canNoShow}
+                  title={canNoShow ? undefined : `Possible ${wait} min après l'heure prévue`}
+                  onClick={() => { if (confirm(`Le client ne s'est pas présenté après ${wait} min d'attente et ne répond pas ?`)) void act("no_show"); }}>
+                  {canNoShow ? "Client absent" : `Absent (dès ${dakarTime(noShowAt).replace(":", "h")})`}
+                </button>
               </div>
             )}
             {c.status === "in_progress" && (
@@ -130,6 +149,9 @@ function CourseCard({ c, sharing, onShare, onUpdate }: {
           </>
         )}
         {done && c.final_price !== null && <p className="text-sm">Encaissé : <strong>{formatFcfa(c.final_price)}</strong></p>}
+        {c.status === "no_show" && (
+          <a className="btn-whatsapp w-full text-[12px]" href={waLink(c.customer_phone, noShowMsg)} target="_blank" rel="noopener noreferrer">Prévenir le client sur WhatsApp</a>
+        )}
       </div>
     </article>
   );

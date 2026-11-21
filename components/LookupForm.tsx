@@ -21,6 +21,8 @@ interface PublicBooking {
   estimated_price: number;
   status: BookingStatus;
   tracking_token?: string;
+  proposed_start_at?: string | null;
+  service?: string;
 }
 
 interface HistoryItem {
@@ -131,6 +133,29 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
     window.location.href = "/#reserver";
   };
 
+  const respond = async (accept: boolean) => {
+    if (!accept && !confirm("Refuser cet horaire annulera votre réservation. Continuer ?")) return;
+    setError("");
+    setInfo("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/bookings/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: reference.trim(), phone, accept }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Réponse impossible.");
+        return;
+      }
+      setInfo(accept ? "Merci ! Le nouvel horaire est confirmé." : "Votre réservation a été annulée.");
+    } finally {
+      setLoading(false);
+    }
+    await lookup();
+  };
+
   const start = booking ? Date.parse(booking.start_at) : 0;
   const cancellable = booking && ["pending", "confirmed"].includes(booking.status) && start > Date.now();
 
@@ -159,6 +184,19 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
               {STATUS_LABELS[booking.status]}
             </span>
           </div>
+          {booking.proposed_start_at && ["pending", "confirmed"].includes(booking.status) && (
+            <div className="space-y-3 border border-gold bg-neutral-50 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-gold-dark">Nouvel horaire proposé</p>
+              <p className="text-[15px]">
+                Nous ne pouvons pas assurer l&apos;horaire demandé. Nous vous proposons le{" "}
+                <strong>{formatDateLong(Date.parse(booking.proposed_start_at))} à {dakarTime(Date.parse(booking.proposed_start_at)).replace(":", "h")}</strong>.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className="btn-gold" disabled={loading} onClick={() => respond(true)}>J&apos;accepte</button>
+                <button type="button" className="btn-outline" disabled={loading} onClick={() => respond(false)}>Je refuse</button>
+              </div>
+            </div>
+          )}
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
             <dt className="text-neutral-600">Date</dt>
             <dd className="font-semibold">{formatDateLong(start)} à {dakarTime(start).replace(":", "h")}</dd>

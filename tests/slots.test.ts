@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { availableSlots, blockMinutes, bookableDates, checkStart, daySlotStarts, type BusyInterval } from "@/lib/slots";
+import { availableSlots, blockMinutes, bookableDates, chargeIntervals, checkStart, dayKm, daySlotStarts, type BusyInterval } from "@/lib/slots";
 import { dakarToUtc } from "@/lib/time";
 import { DEFAULT_SETTINGS } from "@/lib/types";
 
@@ -112,5 +112,29 @@ describe("mise à disposition", () => {
     const times = availableSlots(MONDAY, 20, now, busy, r).map((s) => s.time);
     expect(times).not.toContain("13:30");
     expect(times).toContain("15:00");
+  });
+});
+
+describe("véhicules électriques", () => {
+  it("les pauses de recharge ne sont jamais proposées", () => {
+    const busy = chargeIntervals(MONDAY, [{ start: "13:00", end: "14:00" }], r);
+    const times = availableSlots(MONDAY, 20, now, busy, r).map((s) => s.time);
+    expect(times).not.toContain("13:00");
+    expect(times).not.toContain("13:30");
+    expect(times).not.toContain("12:00"); // 12h00 + 65 min déborde sur la recharge
+    expect(times).toContain("14:00");
+    expect(chargeIntervals("2026-11-22", [{ start: "13:00", end: "14:00" }], r)).toEqual([]); // dimanche
+  });
+  it("refuse au-delà de l'autonomie du jour", () => {
+    const rr = { ...r, range_km: 180 };
+    const busy: BusyInterval[] = [
+      { start: dakarToUtc(MONDAY, "08:00"), end: dakarToUtc(MONDAY, "09:30"), kind: "booking", km: 120 },
+      { start: dakarToUtc(MONDAY, "10:00"), end: dakarToUtc(MONDAY, "11:00"), kind: "booking", km: 40 },
+    ];
+    expect(dayKm(busy, MONDAY)).toBe(160);
+    expect(checkStart(dakarToUtc(MONDAY, "15:00"), 20, now, busy, rr, { km: 15 })).toBeNull();
+    expect(checkStart(dakarToUtc(MONDAY, "15:00"), 20, now, busy, rr, { km: 30 })).toBe("no_range");
+    // Avec 2 véhicules, l'autonomie double
+    expect(checkStart(dakarToUtc(MONDAY, "15:00"), 20, now, busy, { ...rr, vehicles: 2 }, { km: 30 })).toBeNull();
   });
 });

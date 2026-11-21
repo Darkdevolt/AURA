@@ -217,7 +217,8 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     setSlotsLoading(true);
     setSlotsError("");
     try {
-      const res = await fetch(`/api/slots?date=${date}&duration=${duration}&service=${service}`, { cache: "no-store" });
+      const km = disposal ? 0 : (estimate?.distanceKm ?? 0);
+      const res = await fetch(`/api/slots?date=${date}&duration=${duration}&service=${service}&km=${km}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setSlots(data.slots);
@@ -228,7 +229,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     } finally {
       setSlotsLoading(false);
     }
-  }, [date, duration, service]);
+  }, [date, duration, service, disposal, estimate?.distanceKm]);
 
   useEffect(() => {
     void loadSlots();

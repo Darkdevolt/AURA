@@ -12,12 +12,15 @@ export type SlotRules = Pick<
   | "min_notice_minutes"
   | "max_days_ahead"
   | "vehicles"
->;
+> & { range_km?: number };
 
 export interface BusyInterval {
   start: number; // ms UTC
   end: number; // ms UTC
   kind: "booking" | "blocked";
+  /** Kilomètres prévus (réservations) : sert au calcul d'autonomie */
+  km?: number;
+  bookingId?: string | null;
 }
 
 export interface Slot {
@@ -60,9 +63,25 @@ export function maxConcurrency(busy: BusyInterval[], start: number, end: number)
 export interface StartOptions {
   /** La prestation entière doit tenir dans les horaires d'ouverture (mise à disposition). */
   endByClose?: boolean;
+  /** Kilomètres de la nouvelle prestation (approche comprise) pour vérifier l'autonomie du jour. */
+  km?: number;
+}
+
+/** Pauses de recharge récurrentes d'une journée d'ouverture, sous forme de plages bloquées. */
+export function chargeIntervals(date: string, windows: { start: string; end: string }[], r: Pick<SlotRules, "open_days">): BusyInterval[] {
+  if (!r.open_days.includes(weekdayOf(date))) return [];
+  return windows
+    .filter((w) => /^\d{2}:\d{2}/.test(w.start) && /^\d{2}:\d{2}/.test(w.end) && w.end > w.start)
+    .map((w) => ({ start: dakarToUtc(date, w.start.slice(0, 5)), end: dakarToUtc(date, w.end.slice(0, 5)), kind: "blocked" as const }));
+}
+
+/** Kilomètres déjà prévus sur une journée (réservations qui commencent ce jour-là). */
+export function dayKm(busy: BusyInterval[], date: string): number {
+  return busy.filter((b) => b.kind === "booking" && dakarDate(b.start) === date).reduce((s, b) => s + (b.km ?? 0), 0);
 }
 
 export type SlotError =
+  | "no_range"
   | "ends_after_close"
   | "closed_day"
   | "outside_hours"
@@ -79,6 +98,7 @@ export const SLOT_ERROR_MESSAGES: Record<SlotError, string> = {
   too_far: "Les réservations sont possibles jusqu'à 14 jours à l'avance.",
   unavailable: "Ce créneau n'est plus disponible. Merci d'en choisir un autre.",
   ends_after_close: "La prestation doit se terminer avant l'heure de fermeture : choisissez un horaire plus tôt.",
+  no_range: "Nos véhicules électriques sont déjà très sollicités ce jour-là : choisissez un autre jour ou appelez-nous.",
 };
 
 /** Vérifie qu'un horaire de départ est réservable. Retourne null si OK. */
@@ -106,6 +126,8 @@ export function checkStart(
   const end = start + blockMinutes(durationMin, r) * MIN;
   if (busy.some((b) => b.kind === "blocked" && b.start < end && b.end > start)) return "unavailable";
   if (maxConcurrency(busy, start, end) >= r.vehicles) return "unavailable";
+  // Autonomie : kilomètres de la journée ≤ autonomie × nombre de véhicules
+  if (r.range_km && opts.km && dayKm(busy, date) + opts.km > r.range_km * r.vehicles) return "no_range";
   return null;
 }
 

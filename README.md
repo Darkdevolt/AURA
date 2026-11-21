@@ -202,3 +202,23 @@ Migration : `supabase/migrations/0004_mise_a_disposition.sql`.
 ## Performance
 Fonctions Vercel en région Paris (`vercel.json`), pages publiques pré-générées (rafraîchies toutes les 5 min),
 réglages en cache vidé à chaque modification dans l'admin.
+
+## Véhicules électriques : recharge et autonomie
+- **Pauses de recharge** récurrentes (Admin → Réglages, 13h–14h par défaut) : jamais proposées aux clients.
+- **Autonomie** (180 km par véhicule et par jour par défaut) : le site refuse une réservation qui dépasserait
+  les kilomètres possibles de la journée (approche comprise ; mise à disposition = heures × km/h estimés).
+- Recharge exceptionnelle : Admin → Plages.
+
+## Validation des demandes
+Chaque nouvelle demande affiche **Accepter / Autre horaire / Refuser**. « Autre horaire » vérifie la disponibilité
+(recharge, autonomie, autres courses) puis prépare le message WhatsApp ; le client accepte ou refuse en un clic dans
+« Ma réservation ».
+
+## Clients absents
+- Le chauffeur ne peut déclarer « client absent » qu'après le **délai d'attente** (10 min par défaut), puis envoie un
+  message WhatsApp prérempli au client.
+- L'admin voit « ⚠ N absences » à côté du client ; après **2 absences** (réglable), la réservation en ligne est
+  bloquée pour ce numéro (le client doit appeler).
+- **Frais d'absence** facultatifs, notés sur la réservation. Le chiffre d'affaires perdu apparaît dans Finances et dans
+  le rapport.
+Migration : `supabase/migrations/0005_absences_recharge_validation.sql` (après 0004).

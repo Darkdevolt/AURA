@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     p_payment_method: pm,
   });
   if (error) return jsonError("Service indisponible.", 503);
+  if (data === "too_early") return jsonError("Attendez la fin du délai d'attente avant de déclarer le client absent.", 409);
   if (data !== "ok") return jsonError("Mise à jour impossible.", 409);
   return NextResponse.json({ ok: true });
 }

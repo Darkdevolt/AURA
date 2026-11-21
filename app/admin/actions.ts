@@ -7,7 +7,9 @@ import { normalizeSenegalPhone } from "@/lib/phone";
 import { requireAdmin, supabaseSession } from "@/lib/supabase/server";
 import { dakarToUtc } from "@/lib/time";
 import { hashPin } from "@/lib/driver-auth";
-import { EXPENSE_CATEGORIES, INCOME_SOURCES, type BookingStatus, type PaymentMethod } from "@/lib/types";
+import { serviceKm } from "@/lib/service";
+import { chargeIntervals, checkStart, SLOT_ERROR_MESSAGES, type BusyInterval } from "@/lib/slots";
+import { DEFAULT_SETTINGS, EXPENSE_CATEGORIES, INCOME_SOURCES, type BookingStatus, type PaymentMethod, type ServiceKind, type Settings } from "@/lib/types";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -34,6 +36,14 @@ export async function updateBooking(_: ActionResult | null, form: FormData): Pro
   if (payment_method && !PAYMENTS.includes(payment_method)) return { ok: false, message: "Moyen de paiement invalide." };
 
   const patch: Record<string, unknown> = { status, final_price, payment_method };
+  if (status === "no_show") {
+    const { data: cur } = await supabase.from("luxus_bookings").select("status").eq("id", id).single();
+    if (cur?.status !== "no_show") {
+      const { data: cfg } = await supabase.from("luxus_settings").select("noshow_fee").single();
+      patch.noshow_at = new Date().toISOString();
+      patch.noshow_fee_due = cfg?.noshow_fee ?? 0;
+    }
+  }
   if (form.has("vehicle_id")) patch.vehicle_id = String(form.get("vehicle_id")) || null;
   if (form.has("driver_id")) patch.driver_id = String(form.get("driver_id")) || null;
   const { error } = await supabase.from("luxus_bookings").update(patch).eq("id", id);
@@ -72,6 +82,7 @@ const INT_FIELDS = [
   "approach_minutes", "margin_minutes", "min_notice_minutes", "max_days_ahead",
   "max_active_per_phone", "max_per_ip_per_day",
   "half_day_hours", "half_day_price", "full_day_hours", "full_day_price",
+  "noshow_wait_minutes", "noshow_block_after", "noshow_fee", "range_km", "disposal_km_per_hour",
 ] as const;
 
 export async function updateSettings(_: ActionResult | null, form: FormData): Promise<ActionResult> {
@@ -84,6 +95,17 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
   }
   if ((patch.slot_minutes as number) < 5) return { ok: false, message: "Créneau trop court." };
   patch.airport_enabled = form.get("airport_enabled") === "on";
+  const windows = [];
+  for (let i = 0; i < 3; i++) {
+    const a = String(form.get(`charge_start_${i}`) ?? "");
+    const b = String(form.get(`charge_end_${i}`) ?? "");
+    if (!a && !b) continue;
+    if (!/^\d{2}:\d{2}$/.test(a) || !/^\d{2}:\d{2}$/.test(b) || b <= a) return { ok: false, message: `Pause de recharge ${i + 1} : heures invalides.` };
+    windows.push({ start: a, end: b, label: String(form.get(`charge_label_${i}`) ?? "").slice(0, 40) || "Recharge" });
+  }
+  patch.charge_windows = windows;
+  if ((patch.noshow_wait_minutes as number) > 60) return { ok: false, message: "Délai d'attente : 60 minutes maximum." };
+  if ((patch.noshow_block_after as number) > 10) return { ok: false, message: "Seuil d'absences : 10 maximum." };
   patch.half_day_enabled = form.get("half_day_enabled") === "on";
   patch.full_day_enabled = form.get("full_day_enabled") === "on";
   if ((patch.half_day_hours as number) < 1 || (patch.full_day_hours as number) < 1 || (patch.full_day_hours as number) > 14)
@@ -250,4 +272,54 @@ export async function deleteEntry(form: FormData) {
   await supabase.from(table).delete().eq("id", id);
   if (data?.receipt_path) await supabase.storage.from("luxus-receipts").remove([data.receipt_path]);
   revalidatePath("/admin", "layout");
+}
+
+// ---------------------------------------------------------------------------
+// Validation des demandes : accepter, proposer un autre horaire, refuser
+// ---------------------------------------------------------------------------
+export type DecisionResult = { ok: boolean; message: string; proposedAt?: string };
+
+export async function decideBooking(id: string, decision: "accept" | "refuse"): Promise<DecisionResult> {
+  const supabase = await admin();
+  const status = decision === "accept" ? "confirmed" : "cancelled";
+  const { error } = await supabase.from("luxus_bookings").update({ status, proposed_start_at: null }).eq("id", id);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin");
+  return { ok: true, message: decision === "accept" ? "Réservation confirmée." : "Réservation refusée." };
+}
+
+export async function proposeTime(id: string, date: string, time: string): Promise<DecisionResult> {
+  const supabase = await admin();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return { ok: false, message: "Date ou heure invalide." };
+  const { data: b } = await supabase.from("luxus_bookings").select("*").eq("id", id).single();
+  if (!b) return { ok: false, message: "Réservation introuvable." };
+  const { data: cfgRow } = await supabase.from("luxus_settings").select("*").single();
+  const cfg = { ...DEFAULT_SETTINGS, ...(cfgRow as Partial<Settings>) } as Settings;
+  const start = dakarToUtc(date, time);
+  const blockLen = Date.parse(b.blocked_until) - Date.parse(b.start_at);
+  const from = new Date(start - 12 * 3600_000).toISOString();
+  const to = new Date(start + blockLen).toISOString();
+  const [bRes, sRes] = await Promise.all([
+    supabase.from("luxus_bookings").select("id, start_at, blocked_until, distance_km, duration_min, service, status")
+      .not("status", "in", "(cancelled,no_show,completed)").lt("start_at", to).gt("blocked_until", from),
+    supabase.from("luxus_blocked_slots").select("start_at, end_at").lt("start_at", to).gt("end_at", from),
+  ]);
+  const busy: BusyInterval[] = [
+    ...(bRes.data ?? []).filter((x) => x.id !== id).map((x) => ({
+      start: Date.parse(x.start_at), end: Date.parse(x.blocked_until), kind: "booking" as const,
+      km: serviceKm(x.service ?? "course", Number(x.distance_km), x.duration_min, cfg),
+    })),
+    ...(sRes.data ?? []).map((x) => ({ start: Date.parse(x.start_at), end: Date.parse(x.end_at), kind: "blocked" as const })),
+    ...chargeIntervals(date, cfg.charge_windows ?? [], cfg),
+  ];
+  const service = (b.service ?? "course") as ServiceKind;
+  const err = checkStart(start, b.duration_min, Date.now(), busy, { ...cfg, min_notice_minutes: 0 }, {
+    endByClose: service !== "course",
+    km: serviceKm(service, Number(b.distance_km), b.duration_min, cfg),
+  });
+  if (err) return { ok: false, message: SLOT_ERROR_MESSAGES[err] };
+  const { error } = await supabase.from("luxus_bookings").update({ proposed_start_at: new Date(start).toISOString() }).eq("id", id);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin");
+  return { ok: true, message: "Proposition enregistrée : envoyez-la au client.", proposedAt: new Date(start).toISOString() };
 }

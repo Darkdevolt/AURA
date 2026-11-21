@@ -70,6 +70,19 @@ export interface Settings {
   full_day_enabled: boolean;
   full_day_hours: number;
   full_day_price: number;
+  noshow_wait_minutes: number;
+  noshow_block_after: number;
+  noshow_fee: number;
+  range_km: number;
+  disposal_km_per_hour: number;
+  charge_windows: ChargeWindow[];
+}
+
+/** Pause de recharge récurrente (heure de Dakar), chaque jour d'ouverture. */
+export interface ChargeWindow {
+  start: string; // "13:00"
+  end: string; // "14:00"
+  label?: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -99,6 +112,12 @@ export const DEFAULT_SETTINGS: Settings = {
   full_day_enabled: true,
   full_day_hours: 10,
   full_day_price: 45000,
+  noshow_wait_minutes: 10,
+  noshow_block_after: 2,
+  noshow_fee: 0,
+  range_km: 180,
+  disposal_km_per_hour: 15,
+  charge_windows: [{ start: "13:00", end: "14:00", label: "Recharge" }],
   contact_lines: [
     { label: "Asaad 1", phone: "+221772966462", whatsapp: true },
     { label: "Asaad 1 · 2e ligne", phone: "+221765107848", whatsapp: true },
@@ -136,6 +155,10 @@ export interface Booking {
   driver_pos_at: string | null;
   paid_online: boolean;
   service: ServiceKind;
+  noshow_at: string | null;
+  noshow_fee_due: number;
+  proposed_start_at: string | null;
+  admin_note: string | null;
 }
 
 export interface LatLng {

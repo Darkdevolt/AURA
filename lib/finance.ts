@@ -49,6 +49,9 @@ export interface Summary {
   revenuePerKm: number | null;
   costPerKm: number | null;
   byCategory: Partial<Record<ExpenseCategory, number>>;
+  /** Clients absents : nombre et chiffre d'affaires perdu (prix prévu) */
+  noShows: number;
+  noShowLoss: number;
 }
 
 /**
@@ -65,8 +68,13 @@ export function summarize(
   const inRange = (day: string) => day >= from && day <= to;
   const okVeh = (id: string | null) => vehicleId === null || veh(id, defaultVehicle) === vehicleId;
 
-  let revenueSite = 0, trips = 0, km = 0;
+  let revenueSite = 0, trips = 0, km = 0, noShows = 0, noShowLoss = 0;
   for (const b of d.bookings) {
+    if (b.status === "no_show" && okVeh(b.vehicle_id) && inRange(dakarDate(Date.parse(b.start_at)))) {
+      noShows += 1;
+      noShowLoss += b.estimated_price;
+      continue;
+    }
     if (b.status !== "completed" || !okVeh(b.vehicle_id) || !inRange(dakarDate(Date.parse(b.start_at)))) continue;
     revenueSite += bookingRevenue(b);
     trips += 1;
@@ -100,6 +108,8 @@ export function summarize(
     revenuePerKm: km > 0 ? Math.round(revenueSite / km) : null,
     costPerKm: km > 0 ? Math.round(expenses / km) : null,
     byCategory,
+    noShows,
+    noShowLoss,
   };
 }
 

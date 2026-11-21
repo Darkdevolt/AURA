@@ -23,6 +23,7 @@ describe("rapport", () => {
     expect(r.monthly.reduce((s, m) => s + m.profit, 0)).toBe(r.summary.profit);
     expect(r.activity).toMatchObject({ requested: 10, completed: 8, cancelled: 1, noShow: 1, completionRate: 80 });
     expect(r.perVehicle[0].payback).not.toBeNull();
+    expect(r.summary).toMatchObject({ noShows: 1, noShowLoss: 3000 });
   });
 
   it("produit un classeur Excel complet", async () => {

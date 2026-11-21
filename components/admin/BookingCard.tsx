@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { updateBooking, type ActionResult } from "@/app/admin/actions";
+import { useActionState, useState, useTransition } from "react";
+import { decideBooking, proposeTime, updateBooking, type ActionResult } from "@/app/admin/actions";
 import { googleMapsLink, wazeLink } from "@/lib/geo";
 import { formatSenegalPhone } from "@/lib/phone";
 import { formatFcfa } from "@/lib/pricing";
-import { dakarTime, formatDateLong } from "@/lib/time";
+import { dakarDate, dakarTime, formatDateLong } from "@/lib/time";
 import { PAYMENT_LABELS, STATUS_COLORS, STATUS_LABELS, type Booking, type BookingStatus } from "@/lib/types";
 import { SERVICE_LABELS } from "@/lib/service";
 import { waLink } from "@/lib/whatsapp";
@@ -22,9 +22,69 @@ interface Props {
   drivers: FleetOption[];
   siteUrl: string;
   waveEnabled: boolean;
+  /** Absences passées de ce client (même téléphone) */
+  noShows?: number;
 }
 
-export default function BookingCard({ b, showDate = false, vehicles, drivers, siteUrl, waveEnabled }: Props) {
+function Decision({ b, when, siteUrl, trackUrl }: { b: Booking; when: string; siteUrl: string; trackUrl: string }) {
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [wa, setWa] = useState<{ label: string; url: string } | null>(null);
+  const [showPropose, setShowPropose] = useState(false);
+  const startMs = Date.parse(b.start_at);
+  const [pDate, setPDate] = useState(dakarDate(startMs));
+  const [pTime, setPTime] = useState(dakarTime(startMs + 30 * 60_000));
+  const lookupUrl = `${siteUrl}/ma-reservation?ref=${b.reference}`;
+
+  const run = (fn: () => Promise<{ ok: boolean; message: string; proposedAt?: string }>, onOk: (r: { proposedAt?: string }) => { label: string; url: string }) =>
+    start(async () => {
+      const r = await fn();
+      setMsg({ ok: r.ok, text: r.message });
+      setWa(r.ok ? onOk(r) : null);
+    });
+
+  return (
+    <div className="space-y-3 border border-gold/60 bg-neutral-50 p-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.08em]">Nouvelle demande — votre décision</p>
+      <div className="cells grid-cols-3">
+        <button type="button" disabled={pending} className="chip chip-off text-[12px] font-semibold"
+          onClick={() => run(() => decideBooking(b.id, "accept"), () => ({
+            label: "Envoyer la confirmation",
+            url: waLink(b.customer_phone, `Bonjour ${b.customer_name}, votre course Luxus Asaad ${b.reference} du ${when} est confirmée. Suivez l'arrivée de votre chauffeur ici : ${trackUrl}`),
+          }))}>Accepter</button>
+        <button type="button" disabled={pending} className={`chip text-[12px] font-semibold ${showPropose ? "chip-on" : "chip-off"}`} onClick={() => setShowPropose((v) => !v)}>
+          Autre horaire
+        </button>
+        <button type="button" disabled={pending} className="chip chip-off text-[12px] font-semibold text-rose-800"
+          onClick={() => { if (confirm("Refuser cette demande ?")) run(() => decideBooking(b.id, "refuse"), () => ({
+            label: "Prévenir le client",
+            url: waLink(b.customer_phone, `Bonjour ${b.customer_name}, nous sommes désolés : nous ne pouvons pas assurer votre course ${b.reference} du ${when}. Appelez-nous ou répondez à ce message pour trouver un autre horaire.`),
+          })); }}>Refuser</button>
+      </div>
+      {showPropose && (
+        <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+          <div><label className="label" htmlFor={`pd-${b.id}`}>Jour</label><input id={`pd-${b.id}`} type="date" className="input" value={pDate} onChange={(e) => setPDate(e.target.value)} /></div>
+          <div><label className="label" htmlFor={`pt-${b.id}`}>Heure</label><input id={`pt-${b.id}`} type="time" step={1800} className="input" value={pTime} onChange={(e) => setPTime(e.target.value)} /></div>
+          <button type="button" disabled={pending} className="btn-primary px-4"
+            onClick={() => run(() => proposeTime(b.id, pDate, pTime), (r) => {
+              const t = Date.parse(r.proposedAt!);
+              const nice = `${formatDateLong(t)} à ${dakarTime(t).replace(":", "h")}`;
+              return {
+                label: "Envoyer la proposition",
+                url: waLink(b.customer_phone, `Bonjour ${b.customer_name}, ici Luxus Asaad. Pour votre course ${b.reference}, nous ne pouvons pas assurer ${when} (recharge du véhicule électrique). Nous vous proposons le ${nice}. Acceptez ou refusez en un clic ici : ${lookupUrl}`),
+              };
+            })}>OK</button>
+        </div>
+      )}
+      {msg && <p className={`text-sm ${msg.ok ? "text-emerald-800" : "text-rose-800"}`} role="status">{msg.text}</p>}
+      {wa && (
+        <a className="btn-whatsapp w-full text-[12px]" href={wa.url} target="_blank" rel="noopener noreferrer">{wa.label} sur WhatsApp</a>
+      )}
+    </div>
+  );
+}
+
+export default function BookingCard({ b, showDate = false, vehicles, drivers, siteUrl, waveEnabled, noShows = 0 }: Props) {
   const [state, action, pending] = useActionState<ActionResult | null, FormData>(updateBooking, null);
   const [waveState, setWaveState] = useState<"idle" | "loading" | "error">("idle");
   const [waveError, setWaveError] = useState("");
@@ -77,12 +137,23 @@ export default function BookingCard({ b, showDate = false, vehicles, drivers, si
 
       <div className="text-[15px]">
         <p className="font-semibold">{b.customer_name} · {formatSenegalPhone(b.customer_phone)}</p>
+        {noShows > 0 && (
+          <p className="mt-1 inline-block bg-rose-50 px-2 py-0.5 text-[12px] font-semibold text-rose-800">
+            ⚠ {noShows} absence{noShows > 1 ? "s" : ""} déjà — appelez pour confirmer
+          </p>
+        )}
+        {b.noshow_fee_due > 0 && <p className="text-[12px] text-rose-800">Frais d&apos;absence dus : {formatFcfa(b.noshow_fee_due)}</p>}
+        {b.proposed_start_at && (
+          <p className="mt-1 text-[12px] text-gold-dark">Horaire proposé au client : {formatDateLong(Date.parse(b.proposed_start_at))} à {dakarTime(Date.parse(b.proposed_start_at)).replace(":", "h")} (en attente de sa réponse)</p>
+        )}
         <p className="mt-1"><span className="font-semibold text-neutral-500">A</span> {b.pickup_address}</p>
         {b.pickup_note && <p className="ml-4 text-neutral-700">↳ {b.pickup_note}</p>}
         <p><span className="font-semibold text-gold-dark">B</span> {b.dropoff_address}</p>
         {b.comment && <p className="mt-2 border-l-2 border-gold bg-neutral-50 px-3 py-2 text-neutral-800">{b.comment}</p>}
         <p className="mt-2 text-neutral-700">Estimé : <strong>{formatFcfa(b.estimated_price)}</strong></p>
       </div>
+
+      {b.status === "pending" && <Decision b={b} when={when} siteUrl={siteUrl} trackUrl={trackUrl} />}
 
       <div className="cells grid-cols-2 sm:grid-cols-4">
         <a className="chip chip-off text-[13px]" href={`tel:${b.customer_phone}`}>Appeler</a>

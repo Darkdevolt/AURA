@@ -145,7 +145,7 @@ export default function ReportDocument({ r, vehName }: { r: ReportData; vehName:
                 ["Demandes", r.activity.requested],
                 ["Réalisées", r.activity.completed],
                 ["Annulées", r.activity.cancelled],
-                ["Clients absents", r.activity.noShow],
+                ["Clients absents", `${r.activity.noShow}${s.noShowLoss ? ` (${formatFcfa(s.noShowLoss)})` : ""}`],
                 ["Taux de réalisation", pct(r.activity.completionRate)],
                 ["Distance moyenne", r.activity.avgDistance === null ? "—" : `${r.activity.avgDistance.toLocaleString("fr-FR")} km`],
               ].map(([k, v]) => (

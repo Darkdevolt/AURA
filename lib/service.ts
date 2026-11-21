@@ -28,6 +28,17 @@ export function servicePrice(service: ServiceKind, s: ServiceSettings, distanceK
   return computePrice(distanceKm, s, pickup, dropoff);
 }
 
+/** Kilomètres consommés par une prestation (approche comprise), pour le calcul d'autonomie. */
+export function serviceKm(
+  service: ServiceKind,
+  distanceKm: number,
+  durationMin: number,
+  s: Pick<Settings, "approach_minutes" | "disposal_km_per_hour">,
+): number {
+  if (service !== "course") return (durationMin / 60) * s.disposal_km_per_hour;
+  return distanceKm + (s.approach_minutes / 60) * 20;
+}
+
 export function parseService(v: unknown): ServiceKind {
   return v === "journee" || v === "demi_journee" ? v : "course";
 }

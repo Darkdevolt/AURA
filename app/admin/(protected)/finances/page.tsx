@@ -29,7 +29,7 @@ export default async function FinancesPage({ searchParams }: { searchParams: Pro
 
   const [vRes, bRes, eRes, iRes] = await Promise.all([
     supabase.from("luxus_vehicles").select("*").order("created_at"),
-    supabase.from("luxus_bookings").select("start_at, status, final_price, estimated_price, vehicle_id, distance_km").eq("status", "completed"),
+    supabase.from("luxus_bookings").select("start_at, status, final_price, estimated_price, vehicle_id, distance_km").in("status", ["completed", "no_show"]),
     supabase.from("luxus_expenses").select("spent_on, amount, category, vehicle_id"),
     supabase.from("luxus_incomes").select("earned_on, amount, trips, vehicle_id"),
   ]);
@@ -106,6 +106,11 @@ export default async function FinancesPage({ searchParams }: { searchParams: Pro
           <Kpi label="Recette / km" value={s.revenuePerKm === null ? "—" : formatFcfa(s.revenuePerKm)} />
           <Kpi label="Coût / km" value={s.costPerKm === null ? "—" : formatFcfa(s.costPerKm)} />
         </div>
+        {s.noShows > 0 && (
+          <p className="mt-2 border-l-2 border-rose-600 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+            {s.noShows} client{s.noShows > 1 ? "s" : ""} absent{s.noShows > 1 ? "s" : ""} ce mois-ci : {formatFcfa(s.noShowLoss)} de chiffre d&apos;affaires perdu.
+          </p>
+        )}
         <p className="mt-2 text-xs text-neutral-500">
           Depuis le 1er janvier : CA {formatFcfa(ytd.revenue)} · dépenses {formatFcfa(ytd.expenses)} · bénéfice{" "}
           <strong className={ytd.profit < 0 ? "text-rose-700" : "text-emerald-700"}>{formatFcfa(ytd.profit)}</strong>

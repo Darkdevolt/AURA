@@ -41,7 +41,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const monthStart = `${today.slice(0, 8)}01`;
   const statsFrom = weekStart < monthStart ? weekStart : monthStart;
 
-  const [dayRes, statsRes, pendingRes, settingsRes, blocksRes, vehRes, drvRes] = await Promise.all([
+  const [dayRes, statsRes, pendingRes, settingsRes, blocksRes, vehRes, drvRes, nsRes] = await Promise.all([
     supabase.from("luxus_bookings").select("*").gte("start_at", dayStart).lt("start_at", dayEnd).order("start_at"),
     supabase
       .from("luxus_bookings")
@@ -54,10 +54,13 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     supabase.from("luxus_blocked_slots").select("*").lt("start_at", dayEnd).gt("end_at", dayStart),
     supabase.from("luxus_vehicles").select("id, name").eq("active", true).order("created_at"),
     supabase.from("luxus_drivers").select("id, name").eq("active", true).order("created_at"),
+    supabase.from("luxus_bookings").select("customer_phone").eq("status", "no_show"),
   ]);
 
   const bookings = (dayRes.data ?? []) as Booking[];
   const fleet = { vehicles: vehRes.data ?? [], drivers: drvRes.data ?? [], siteUrl: SITE_URL(), waveEnabled: waveEnabled() };
+  const noShowsByPhone = new Map<string, number>();
+  for (const r of nsRes.data ?? []) noShowsByPhone.set(r.customer_phone, (noShowsByPhone.get(r.customer_phone) ?? 0) + 1);
   const pendingOther = ((pendingRes.data ?? []) as Booking[]).filter((b) => dakarDate(Date.parse(b.start_at)) !== date);
   const stats = (from: string) => {
     const rows = (statsRes.data ?? []).filter((r) => dakarDate(Date.parse(r.start_at)) >= from);
@@ -122,13 +125,13 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
       <section className="space-y-3" aria-label="Réservations du jour">
         {bookings.length === 0 && <p className="card text-center text-neutral-700">Aucune réservation ce jour-là.</p>}
-        {bookings.map((b) => <BookingCard key={b.id} b={b} {...fleet} />)}
+        {bookings.map((b) => <BookingCard key={b.id} b={b} {...fleet} noShows={noShowsByPhone.get(b.customer_phone) ?? 0} />)}
       </section>
 
       {pendingOther.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-bold">À confirmer (autres jours)</h2>
-          {pendingOther.map((b) => <BookingCard key={b.id} b={b} showDate {...fleet} />)}
+          {pendingOther.map((b) => <BookingCard key={b.id} b={b} showDate {...fleet} noShows={noShowsByPhone.get(b.customer_phone) ?? 0} />)}
         </section>
       )}
 

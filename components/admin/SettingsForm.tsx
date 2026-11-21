@@ -44,6 +44,36 @@ export default function SettingsForm({ s }: { s: Settings }) {
       </fieldset>
 
       <fieldset className="card grid grid-cols-2 gap-3">
+        <legend className="px-1 text-lg font-bold">Recharge et autonomie (véhicules électriques)</legend>
+        <p className="col-span-2 text-sm text-neutral-600">
+          Les pauses de recharge ne sont jamais proposées aux clients. Le site refuse aussi une réservation si les kilomètres
+          prévus dans la journée dépassent l&apos;autonomie × nombre de véhicules (0 = pas de limite).
+        </p>
+        <Num name="range_km" label="Autonomie par véhicule et par jour" value={s.range_km} suffix="km" />
+        <Num name="disposal_km_per_hour" label="Km estimés par heure de mise à disposition" value={s.disposal_km_per_hour} suffix="km/h" />
+        <p className="label col-span-2 mt-2">Pauses de recharge (chaque jour d&apos;ouverture)</p>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="col-span-2 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
+            <input type="time" step={1800} name={`charge_start_${i}`} aria-label={`Début pause ${i + 1}`} defaultValue={s.charge_windows?.[i]?.start ?? ""} className="input" />
+            <input type="time" step={1800} name={`charge_end_${i}`} aria-label={`Fin pause ${i + 1}`} defaultValue={s.charge_windows?.[i]?.end ?? ""} className="input" />
+            <input name={`charge_label_${i}`} aria-label={`Nom pause ${i + 1}`} placeholder="Recharge" defaultValue={s.charge_windows?.[i]?.label ?? ""} className="input" maxLength={40} />
+          </div>
+        ))}
+        <p className="col-span-2 text-xs text-neutral-500">Laissez une ligne vide pour la retirer. Pour une recharge exceptionnelle, utilisez « Plages ».</p>
+      </fieldset>
+
+      <fieldset className="card grid grid-cols-2 gap-3">
+        <legend className="px-1 text-lg font-bold">Clients absents</legend>
+        <Num name="noshow_wait_minutes" label="Attente avant « absent »" value={s.noshow_wait_minutes} suffix="min" />
+        <Num name="noshow_block_after" label="Réservation en ligne bloquée après" value={s.noshow_block_after} suffix="absences, 0 = jamais" />
+        <Num name="noshow_fee" label="Frais d'absence" value={s.noshow_fee} suffix="FCFA, 0 = aucun" />
+        <p className="col-span-2 text-xs text-neutral-500">
+          Un client bloqué voit « merci de nous appeler pour réserver ». Les frais d&apos;absence sont notés sur la réservation
+          pour être réclamés à la course suivante.
+        </p>
+      </fieldset>
+
+      <fieldset className="card grid grid-cols-2 gap-3">
         <legend className="px-1 text-lg font-bold">Horaires et créneaux</legend>
         <p className="col-span-2 text-sm text-neutral-600">Véhicules en service : <strong>{s.vehicles}</strong> (géré dans Flotte).</p>
         <div><label className="label text-sm" htmlFor="open_time">Ouverture</label><input id="open_time" type="time" name="open_time" defaultValue={s.open_time.slice(0, 5)} className="input" /></div>

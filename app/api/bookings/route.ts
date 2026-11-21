@@ -4,8 +4,8 @@ import { notifyNewBooking } from "@/lib/notify";
 import { estimateRoute, isInSenegal } from "@/lib/geo";
 import { clientIpHash, jsonError, parseLatLng, str } from "@/lib/http";
 import { bookingWhatsApp, normalizeSenegalPhone } from "@/lib/phone";
-import { getBusy, getSettings } from "@/lib/server-data";
-import { disposalMinutes, isDisposal, parseService, serviceEnabled, servicePrice, SERVICE_LABELS } from "@/lib/service";
+import { getBusyWithCharging, getSettings } from "@/lib/server-data";
+import { disposalMinutes, isDisposal, parseService, serviceEnabled, serviceKm, servicePrice, SERVICE_LABELS } from "@/lib/service";
 import { blockMinutes, checkStart, SLOT_ERROR_MESSAGES } from "@/lib/slots";
 import { supabasePublic } from "@/lib/supabase/server";
 
@@ -15,6 +15,7 @@ const ERRORS: Record<string, [string, number]> = {
   slot_unavailable: [SLOT_ERROR_MESSAGES.unavailable, 409],
   limit_phone: ["Vous avez déjà plusieurs réservations en cours avec ce numéro. Contactez-nous sur WhatsApp.", 429],
   limit_ip: ["Trop de réservations depuis cette connexion. Contactez-nous sur WhatsApp.", 429],
+  limit_noshow: ["Suite à des rendez-vous manqués, merci de nous appeler pour réserver : nous serons ravis de vous aider.", 403],
 };
 
 export async function POST(req: Request) {
@@ -59,8 +60,9 @@ export async function POST(req: Request) {
     const { price } = servicePrice(service, settings, route.distanceKm, pickup, dropoff);
     const blockedUntil = startAt + blockMinutes(route.durationMin, settings) * 60_000;
 
-    const busy = await getBusy(startAt - 12 * 3600_000, blockedUntil);
-    const err = checkStart(startAt, route.durationMin, Date.now(), busy, settings, { endByClose: disposal });
+    const busy = await getBusyWithCharging(startAt - 12 * 3600_000, blockedUntil, settings);
+    const km = serviceKm(service, route.distanceKm, route.durationMin, settings);
+    const err = checkStart(startAt, route.durationMin, Date.now(), busy, settings, { endByClose: disposal, km });
     if (err) return jsonError(SLOT_ERROR_MESSAGES[err], 409);
 
     const { data, error } = await supabasePublic().rpc("luxus_create_booking", {
