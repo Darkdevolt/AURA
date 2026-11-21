@@ -25,7 +25,7 @@ export default function BookingCard({ b, showDate = false }: { b: Booking; showD
           {showDate && <p className="text-sm capitalize text-neutral-700">{formatDateLong(start)}</p>}
           <p className="text-sm text-neutral-600">{b.reference} · {b.passengers} pass. · {b.distance_km} km · ~{b.duration_min} min</p>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${STATUS_COLORS[b.status]}`}>{STATUS_LABELS[b.status]}</span>
+        <span className={` border px-3 py-1 text-sm font-semibold ${STATUS_COLORS[b.status]}`}>{STATUS_LABELS[b.status]}</span>
       </header>
 
       <div className="text-[15px]">
@@ -33,7 +33,7 @@ export default function BookingCard({ b, showDate = false }: { b: Booking; showD
         <p className="mt-1"><span className="font-semibold text-neutral-600">A</span> {b.pickup_address}</p>
         {b.pickup_note && <p className="ml-4 text-neutral-700">↳ {b.pickup_note}</p>}
         <p><span className="font-semibold text-neutral-600">B</span> {b.dropoff_address}</p>
-        {b.comment && <p className="mt-1 rounded-lg bg-cream px-3 py-2 text-neutral-800">💬 {b.comment}</p>}
+        {b.comment && <p className="mt-1 bg-neutral-50 px-3 py-2 text-neutral-800">💬 {b.comment}</p>}
         <p className="mt-1 text-neutral-700">Estimé : <strong>{formatFcfa(b.estimated_price)}</strong></p>
       </div>
 

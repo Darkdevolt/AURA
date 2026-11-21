@@ -13,7 +13,7 @@ const NAV = [
 export default function NavLinks() {
   const path = usePathname();
   return (
-    <ul className="flex gap-1 whitespace-nowrap text-[15px]">
+    <ul className="flex gap-4 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.1em] sm:gap-6 sm:text-[12px] sm:tracking-[0.14em]">
       {NAV.map((n) => {
         const on = n.href === "/" ? path === "/" : path.startsWith(n.href);
         return (
@@ -21,11 +21,10 @@ export default function NavLinks() {
             <Link
               href={n.href}
               aria-current={on ? "page" : undefined}
-              className={`inline-flex min-h-10 items-center rounded-full px-3 text-[14.5px] transition ${
-                on ? "bg-white/10 font-semibold text-gold-light" : "text-neutral-300 hover:text-white"
-              }`}
+              className={`relative inline-flex min-h-11 items-center transition ${on ? "text-white" : "text-neutral-400 hover:text-white"}`}
             >
               {n.label}
+              {on && <span aria-hidden className="gold-rule absolute inset-x-0 bottom-1.5" />}
             </Link>
           </li>
         );

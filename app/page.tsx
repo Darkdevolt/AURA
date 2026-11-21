@@ -1,105 +1,73 @@
 import BookingForm from "@/components/BookingForm";
-import PhoneLines from "@/components/PhoneLines";
-import { validLines } from "@/lib/phone";
 import { getSettings, publicSettings } from "@/lib/server-data";
 
 export const dynamic = "force-dynamic";
 
-const PERKS = [
-  {
-    title: "100 % électrique",
-    text: "Silencieux, climatisé, zéro émission.",
-    icon: <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" />,
-  },
-  {
-    title: "Ponctuel",
-    text: "Réservé à l'avance, à l'heure au rendez-vous.",
-    icon: (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
-  },
-  {
-    title: "Paiement à la fin",
-    text: "Espèces, Wave ou Orange Money.",
-    icon: (<><rect x="2.5" y="6" width="19" height="13" rx="2" /><path d="M2.5 10h19M6.5 15h3" /></>),
-  },
-];
+const PERKS = ["100 % électrique", "Ponctualité", "Paiement à la fin"];
 
 const STEPS = [
-  { n: "1", title: "Indiquez votre trajet", text: "Départ, destination : le prix s'affiche aussitôt." },
-  { n: "2", title: "Choisissez l'heure", text: "Seuls les créneaux libres vous sont proposés." },
-  { n: "3", title: "Confirmez", text: "Vous recevez un numéro de réservation, à envoyer sur WhatsApp." },
+  { n: "01", title: "Votre trajet", text: "Départ et destination : le prix s'affiche aussitôt." },
+  { n: "02", title: "Votre horaire", text: "Seuls les créneaux libres vous sont proposés." },
+  { n: "03", title: "Confirmation", text: "Un numéro de réservation, envoyé sur WhatsApp en un geste." },
 ];
 
 export default async function HomePage() {
   const all = await getSettings();
   const settings = publicSettings(all);
-  const lines = validLines(all.contact_lines);
 
   return (
     <>
       {/* Bandeau d'accueil */}
-      <section className="relative overflow-hidden bg-ink text-white">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-ink-grad text-white">
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_90%_10%,rgba(196,138,22,0.28),transparent_70%)]" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img aria-hidden src="/lion-light.png" alt="" width={534} height={447} className="pointer-events-none absolute -right-16 top-6 w-[22rem] max-w-none opacity-[0.07] sm:right-0 sm:w-[30rem]" />
-        <div className="wrap relative pb-24 pt-8 sm:pt-12">
-          <p className="eyebrow !text-gold-light">VTC · Dakar</p>
-          <h1 className="mt-3 font-display text-[2.1rem] font-bold leading-[1.1] sm:text-5xl">
-            Votre chauffeur privé, <span className="gold-text">à l&apos;heure</span>.
+        <img aria-hidden src="/lion-light.png" alt="" width={534} height={447}
+          className="pointer-events-none absolute -right-20 bottom-0 w-[24rem] max-w-none opacity-[0.08] sm:-right-6 sm:w-[32rem]" />
+        <div className="wrap relative pb-14 pt-12 sm:pb-20 sm:pt-16">
+          <p className="eyebrow !text-gold-light">Chauffeur privé · Dakar</p>
+          <h1 className="font-brand mt-4 text-[2.15rem] leading-[1.05] sm:text-6xl">
+            Voyagez
+            <br />
+            <span className="gold-text">en roi.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-neutral-300">
-            Réservez votre course en quelques secondes. Véhicule électrique, chauffeur professionnel, prix annoncé à
-            l&apos;avance et paiement à la fin du trajet.
+          <p className="mt-5 max-w-md text-[16px] leading-relaxed text-neutral-300">
+            Réservez votre chauffeur en quelques secondes. Véhicule électrique, prix annoncé à l&apos;avance, paiement à
+            la fin de la course.
           </p>
-          <ul className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+          <a href="#reserver" className="btn-gold mt-8">Réserver une course</a>
+          <ul className="mt-12 grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 pt-5 text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-300 sm:text-[12px]">
             {PERKS.map((p) => (
-              <li key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-                <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-gold-light">
-                  {p.icon}
-                </svg>
-                <p className="mt-2 text-[13px] font-semibold leading-tight sm:text-sm">{p.title}</p>
-                <p className="mt-0.5 hidden text-xs text-neutral-400 sm:block">{p.text}</p>
-              </li>
+              <li key={p} className="px-2">{p}</li>
             ))}
           </ul>
         </div>
+        <div aria-hidden className="gold-rule" />
       </section>
 
-      {/* Formulaire (remonte sur le bandeau) */}
-      <section id="reserver" aria-label="Réserver une course" className="wrap relative -mt-16">
-        <BookingForm settings={settings} />
+      {/* Réservation */}
+      <section id="reserver" aria-labelledby="reserver-titre" className="wrap scroll-mt-28 pt-12">
+        <p className="eyebrow">Réservation en ligne</p>
+        <h2 id="reserver-titre" className="font-brand mt-2 text-2xl sm:text-3xl">Réserver une course</h2>
+        <div className="mt-8">
+          <BookingForm settings={settings} />
+        </div>
       </section>
 
       {/* Comment ça marche */}
-      <section className="wrap mt-14" aria-labelledby="how">
+      <section className="wrap mt-20" aria-labelledby="how">
         <p className="eyebrow">Simple et rapide</p>
-        <h2 id="how" className="mt-1 font-display text-2xl font-bold sm:text-3xl">Comment ça marche</h2>
-        <ol className="mt-5 grid gap-3 sm:grid-cols-3">
+        <h2 id="how" className="font-brand mt-2 text-2xl sm:text-3xl">Comment ça marche</h2>
+        <ol className="mt-8 grid border-t border-line sm:grid-cols-3 sm:border-t-0">
           {STEPS.map((s) => (
-            <li key={s.n} className="card flex gap-4 sm:block">
-              <span className="font-display text-3xl font-bold text-gold">{s.n}</span>
-              <div className="sm:mt-2">
-                <p className="font-semibold">{s.title}</p>
-                <p className="mt-1 text-[15px] text-neutral-600">{s.text}</p>
-              </div>
+            <li key={s.n} className="border-b border-line py-6 sm:border-b-0 sm:border-l sm:px-6 sm:py-2 sm:first:border-l-0 sm:first:pl-0">
+              <span className="font-brand gold-text text-3xl">{s.n}</span>
+              <p className="mt-3 text-[13px] font-bold uppercase tracking-[0.14em]">{s.title}</p>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-neutral-600">{s.text}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      {/* Appeler */}
-      {lines.length > 0 && (
-        <section className="wrap mt-14" aria-labelledby="call">
-          <div className="rounded-3xl bg-gradient-to-br from-ink to-ink-soft p-6 text-white sm:p-8">
-            <p className="eyebrow !text-gold-light">Vous préférez appeler ?</p>
-            <h2 id="call" className="mt-1 font-display text-2xl font-bold">Réservez par téléphone</h2>
-            <p className="mt-2 text-[15px] text-neutral-300">Du lundi au samedi, de 8h00 à 20h00. Appel ou WhatsApp.</p>
-            <div className="mt-5">
-              <PhoneLines lines={lines} tone="dark" />
-            </div>
-          </div>
-        </section>
-      )}
     </>
   );
 }

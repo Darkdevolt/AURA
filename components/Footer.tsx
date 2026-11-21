@@ -5,26 +5,30 @@ import type { ContactLine } from "@/lib/types";
 
 export default function Footer({ lines }: { lines: ContactLine[] }) {
   return (
-    <footer className="mt-16 bg-ink text-neutral-300">
-      <div className="wrap grid gap-8 py-10 sm:grid-cols-2">
+    <footer className="bg-ink-grad text-neutral-400">
+      <div aria-hidden className="gold-rule" />
+      <div className="wrap grid gap-10 py-12 sm:grid-cols-2">
         <div>
-          <Logo variant="full" height={110} alt="Luxus Asaad" />
-          <p className="mt-3 text-sm leading-relaxed">
-            Chauffeur privé en véhicule électrique à Dakar. Du lundi au samedi, de 8h00 à 20h00.
+          <Logo variant="full" height={104} alt="Luxus Asaad" />
+          <p className="mt-5 text-sm leading-relaxed">
+            Chauffeur privé en véhicule électrique à Dakar.
+            <br />
+            Du lundi au samedi, de 8h00 à 20h00.
           </p>
-          <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-            <Link href="/ma-reservation" className="underline-offset-4 hover:text-white hover:underline">Ma réservation</Link>
-            <Link href="/a-propos" className="underline-offset-4 hover:text-white hover:underline">À propos</Link>
-            <Link href="/mentions-legales" className="underline-offset-4 hover:text-white hover:underline">Mentions légales</Link>
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-semibold uppercase tracking-[0.14em]">
+            <Link href="/ma-reservation" className="hover:text-white">Ma réservation</Link>
+            <Link href="/a-propos" className="hover:text-white">À propos</Link>
+            <Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link>
           </p>
         </div>
         <div>
-          <p className="mb-3 font-display text-lg font-semibold text-white">Appelez pour réserver</p>
+          <p className="font-brand mb-1 text-[15px] text-white">Appelez pour réserver</p>
+          <p className="mb-4 text-sm">Appel ou WhatsApp, du lundi au samedi.</p>
           <PhoneLines lines={lines} tone="dark" />
         </div>
       </div>
       <div className="border-t border-white/10">
-        <p className="wrap py-4 text-xs text-neutral-500">© {new Date().getFullYear()} Luxus Asaad · Dakar, Sénégal</p>
+        <p className="wrap py-5 text-[11px] uppercase tracking-[0.2em] text-neutral-500">© {new Date().getFullYear()} Luxus Asaad · Dakar</p>
       </div>
     </footer>
   );

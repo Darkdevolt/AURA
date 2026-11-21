@@ -108,7 +108,7 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
         <div className="card space-y-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-2xl font-extrabold">{booking.reference}</p>
-            <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${STATUS_COLORS[booking.status]}`}>
+            <span className={` border px-3 py-1 text-sm font-semibold ${STATUS_COLORS[booking.status]}`}>
               {STATUS_LABELS[booking.status]}
             </span>
           </div>

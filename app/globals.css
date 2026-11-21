@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #111111;
-  --color-ink-soft: #2a2a2a;
-  /* Or tiré du logo Luxus Asaad */
+  /* Noir, blanc, or — tirés du logo Luxus Asaad */
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #1a1a1a;
   --color-gold: #c48a16;
   --color-gold-light: #e5b33a;
   --color-gold-dark: #8a5e08;
-  --color-cream: #f7f2e8;
-  --color-line: #e7e1d3;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --color-line: #e5e5e5;
+  --font-sans: var(--font-saira), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --radius-none: 0;
 }
 
 :root {
   color-scheme: light;
+  --gold-grad: linear-gradient(100deg, #8a5e08 0%, #e5b33a 42%, #c48a16 68%, #8a5e08 100%);
+  --ink-grad: linear-gradient(160deg, #000 0%, #141414 55%, #050505 100%);
 }
 
 html {
@@ -22,73 +23,97 @@ html {
 }
 
 body {
-  background: var(--color-cream);
+  background: #fff;
   color: var(--color-ink);
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-gold);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
 @utility wrap {
-  @apply mx-auto w-full max-w-3xl px-4;
+  @apply mx-auto w-full max-w-3xl px-5;
 }
-@utility card {
-  @apply rounded-2xl border border-line bg-white p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_-12px_rgb(0_0_0/0.12)] sm:p-6;
-}
-@utility eyebrow {
-  @apply text-xs font-semibold uppercase tracking-[0.18em] text-gold-dark;
+/* Titres : même police que le logo (Saira élargie, très grasse, capitales) */
+@utility font-brand {
+  font-family: var(--font-saira), sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 @utility gold-text {
-  @apply bg-gradient-to-r from-gold-light via-gold to-gold-light bg-clip-text text-transparent;
+  background: var(--gold-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility bg-gold-grad {
+  background: var(--gold-grad);
+}
+@utility bg-ink-grad {
+  background: var(--ink-grad);
+}
+@utility gold-rule {
+  height: 2px;
+  background: var(--gold-grad);
+}
+@utility card {
+  @apply border border-line bg-white p-5 sm:p-6;
 }
 @utility label {
-  @apply mb-1.5 block text-[15px] font-semibold text-ink;
+  @apply mb-2 block text-[12px] font-semibold uppercase tracking-[0.12em] text-neutral-600;
 }
 @utility input {
-  @apply block min-h-12 w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-base text-ink placeholder:text-neutral-500 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:bg-neutral-100;
+  @apply block min-h-12 w-full border border-neutral-300 bg-white px-4 py-3 text-base text-ink placeholder:text-neutral-400 transition focus:border-ink focus:shadow-[inset_0_-2px_0_var(--color-gold)] focus:outline-none disabled:bg-neutral-100;
 }
 @utility btn {
-  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-semibold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-[14px] font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-  @apply btn bg-ink text-white shadow-sm hover:bg-ink-soft;
+  @apply btn bg-ink text-white hover:bg-ink-soft;
 }
 @utility btn-gold {
-  @apply btn bg-gradient-to-b from-gold-light to-gold text-ink shadow-sm hover:brightness-105;
-}
-@utility btn-ghost-light {
-  @apply btn border border-white/25 bg-white/5 text-white hover:bg-white/10;
+  @apply btn text-ink hover:brightness-110;
+  background: var(--gold-grad);
 }
 @utility btn-outline {
-  @apply btn border border-neutral-300 bg-white text-ink hover:border-ink;
+  @apply btn border border-ink bg-white text-ink hover:bg-ink hover:text-white;
 }
 @utility btn-whatsapp {
-  @apply btn bg-[#1a7f43] text-white hover:bg-[#157a3e];
+  @apply btn bg-[#128c4a] text-white hover:bg-[#0f7a40];
 }
 @utility chip {
-  @apply inline-flex min-h-11 items-center justify-center rounded-xl border px-3 text-[15px] font-medium transition;
+  @apply inline-flex min-h-12 items-center justify-center px-2 text-[15px] font-medium transition;
 }
 @utility chip-off {
-  @apply border-neutral-300 bg-white text-ink hover:border-gold;
+  @apply bg-white text-ink hover:bg-neutral-50;
 }
 @utility chip-on {
-  @apply border-ink bg-ink text-white shadow-sm;
+  @apply bg-ink text-white;
+  box-shadow: inset 0 -3px 0 var(--color-gold);
+}
+/* Grille de cases jointives séparées par des filets fins */
+@utility cells {
+  @apply grid gap-px border border-line bg-line;
+}
+@utility eyebrow {
+  @apply text-[11px] font-semibold uppercase tracking-[0.25em] text-gold-dark;
 }
 @utility alert-error {
-  @apply rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-[15px] text-rose-900;
+  @apply border-l-2 border-rose-600 bg-rose-50 px-4 py-3 text-[15px] text-rose-900;
 }
 @utility alert-info {
-  @apply rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[15px] text-amber-950;
+  @apply border-l-2 border-gold bg-neutral-50 px-4 py-3 text-[15px] text-ink;
 }
 @utility prose-la {
   & h2 {
-    @apply mt-6 mb-2 text-lg font-bold;
+    @apply mt-8 mb-2 text-[15px] font-bold uppercase tracking-wider;
   }
   & p,
   & li {
-    @apply text-[15px] leading-relaxed text-neutral-800;
+    @apply text-[15px] leading-relaxed text-neutral-700;
   }
   & ul {
     @apply list-disc space-y-1 pl-5;
@@ -102,7 +127,6 @@ body {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 9999px 9999px 9999px 0;
   transform: rotate(-45deg);
   border: 3px solid #fff;
   box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
@@ -113,10 +137,10 @@ body {
   transform: rotate(45deg);
 }
 .la-marker-a {
-  background: #111;
-  color: #e6c97a;
+  background: #0a0a0a;
+  color: #e5b33a;
 }
 .la-marker-b {
-  background: #c9a24a;
-  color: #111;
+  background: #c48a16;
+  color: #0a0a0a;
 }

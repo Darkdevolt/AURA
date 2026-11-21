@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <h1 className="text-xl font-bold">Accès refusé</h1>
         <p className="text-[15px]">
           Le compte <strong>{data.user?.email ?? "?"}</strong> n&apos;est pas administrateur. Ajoutez-le à la table
-          <code className="mx-1 rounded bg-neutral-100 px-1">admins</code> (voir README).
+          <code className="mx-1 bg-neutral-100 px-1">admins</code> (voir README).
         </p>
         <form action={signOut}><button className="btn-outline">Se déconnecter</button></form>
       </div>

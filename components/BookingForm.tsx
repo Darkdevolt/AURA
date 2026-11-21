@@ -19,7 +19,7 @@ import { bookingWhatsAppMessage, waLink, type BookingSummary } from "@/lib/whats
 const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-60 items-center justify-center rounded-xl border border-line bg-neutral-100 text-sm text-neutral-600 sm:h-72">
+    <div className="flex h-60 items-center justify-center border border-line bg-neutral-100 text-sm text-neutral-600 sm:h-72">
       Chargement de la carte…
     </div>
   ),
@@ -44,12 +44,12 @@ const DEFAULT_DURATION = 25;
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <section className="card" aria-labelledby={`step-${n}`}>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/60 font-display text-sm font-bold text-gold-dark">{n}</span>
-        <h2 id={`step-${n}`} className="font-display text-xl font-bold">{title}</h2>
+    <section className="border-t border-line py-8" aria-labelledby={`step-${n}`}>
+      <div className="mb-6 flex items-baseline gap-4">
+        <span className="font-brand gold-text text-2xl">{String(n).padStart(2, "0")}</span>
+        <h3 id={`step-${n}`} className="font-brand text-[15px] tracking-[0.06em]">{title}</h3>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-5">{children}</div>
     </section>
   );
 }
@@ -251,23 +251,24 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     const start = Date.parse(confirmation.start_at);
     return (
       <div className="space-y-4">
-        <div className="card overflow-hidden !p-0 text-center">
-          <div className="bg-gradient-to-br from-ink to-ink-soft px-5 py-6 text-white">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold text-ink">
+        <div className="border border-line text-center">
+          <div className="relative bg-ink-grad px-5 py-8 text-white">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center bg-gold-grad text-ink">
               <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-6 w-6"><path d="m5 12 5 5L20 7" /></svg>
             </div>
             <p className="mt-3 eyebrow !text-gold-light">Réservation enregistrée</p>
-            <p className="mt-1 font-display text-4xl font-bold tracking-wide">{confirmation.reference}</p>
+            <p className="font-brand gold-text mt-2 text-4xl">{confirmation.reference}</p>
           </div>
+          <div aria-hidden className="gold-rule" />
           <div className="p-5 text-left">
             <p className="eyebrow">Dernière étape</p>
-            <p className="mt-1 font-display text-xl font-bold">Envoyez votre réservation sur WhatsApp</p>
+            <p className="font-brand mt-2 text-lg">Envoyez votre réservation sur WhatsApp</p>
             <p className="mt-2 text-[15px] text-neutral-700">
               Merci {confirmation.customer_name} ! WhatsApp va s&apos;ouvrir avec le message déjà rempli :
               appuyez simplement sur <strong>Envoyer</strong>. Nous vous confirmons la course très vite.
             </p>
             <a
-              className="btn-whatsapp mt-4 w-full animate-[pulse_2.5s_ease-in-out_3] text-lg"
+              className="btn-whatsapp mt-4 w-full "
               href={waLink(confirmation.whatsapp_number, bookingWhatsAppMessage(confirmation))}
               target="_blank"
               rel="noopener noreferrer"
@@ -313,12 +314,12 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
 
   // ---------------------------------------------------------------- Formulaire
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={submit} noValidate>
       <Step n={1} title="Votre trajet">
         <div className="relative space-y-4 pl-9">
-          <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-0.5 bg-gradient-to-b from-ink via-neutral-300 to-gold" />
+          <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-px bg-gradient-to-b from-ink via-neutral-300 to-gold" />
           <div className="relative">
-            <span aria-hidden className="absolute -left-9 top-8 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs font-bold text-gold-light">A</span>
+            <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-ink text-xs font-bold text-gold-light">A</span>
             <AddressSearch
               label="Point de départ"
               placeholder="Quartier, rue, lieu connu…"
@@ -329,7 +330,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               }}
             />
             <button type="button" onClick={useMyPosition} disabled={geoState === "loading"}
-              className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-xl px-1 text-[15px] font-semibold text-gold-dark hover:text-ink disabled:opacity-60">
+              className="mt-2 inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.1em] text-gold-dark hover:text-ink disabled:opacity-60">
               <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
               {geoState === "loading" ? "Localisation en cours…" : "Utiliser ma position actuelle"}
             </button>
@@ -340,7 +341,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
             </div>
           </div>
           <div className="relative">
-            <span aria-hidden className="absolute -left-9 top-8 flex h-7 w-7 items-center justify-center rounded-full bg-gold text-xs font-bold text-ink">B</span>
+            <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-gold-grad text-xs font-bold text-ink">B</span>
             <AddressSearch
               label="Destination"
               placeholder="Où allez-vous ?"
@@ -352,14 +353,14 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
 
         <div>
           <p className="mb-2 text-sm text-neutral-600">Ou placez les repères sur la carte :</p>
-          <div className="mb-2 grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1" role="group" aria-label="Point à placer sur la carte">
+          <div className="cells mb-2 grid-cols-2" role="group" aria-label="Point à placer sur la carte">
             {(["pickup", "dropoff"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 aria-pressed={active === k}
                 onClick={() => setActive(k)}
-                className={`min-h-10 rounded-lg px-2 text-sm font-semibold transition ${active === k ? "bg-white text-ink shadow-sm" : "text-neutral-600"}`}
+                className={`chip text-[13px] font-semibold uppercase tracking-[0.1em] ${active === k ? "chip-on" : "chip-off text-neutral-500"}`}
               >
                 {k === "pickup" ? "A · Départ" : "B · Destination"}
               </button>
@@ -370,17 +371,18 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         </div>
 
         {(estimateLoading || estimate || estimateError) && (
-          <div className="rounded-2xl bg-gradient-to-br from-ink to-ink-soft p-4 text-white" aria-live="polite">
+          <div className="relative bg-ink-grad p-5 text-white" aria-live="polite">
+            <div aria-hidden className="gold-rule absolute inset-x-0 top-0" />
             {estimateLoading && <p>Calcul de l&apos;estimation…</p>}
             {!estimateLoading && estimateError && <p className="text-rose-200">{estimateError}</p>}
             {!estimateLoading && estimate && (
               <>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div><p className="text-xs uppercase text-neutral-300">Distance</p><p className="text-lg font-bold">{estimate.distanceKm.toLocaleString("fr-FR")} km</p></div>
-                  <div><p className="text-xs uppercase text-neutral-300">Durée</p><p className="text-lg font-bold">~{estimate.durationMin} min</p></div>
-                  <div><p className="text-xs uppercase text-neutral-300">Prix estimé</p><p className="text-lg font-bold gold-text">{formatFcfa(estimate.price)}</p></div>
+                <div className="grid grid-cols-3 divide-x divide-white/10 text-center">
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Distance</p><p className="text-lg font-bold">{estimate.distanceKm.toLocaleString("fr-FR")} km</p></div>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Durée</p><p className="text-lg font-bold">~{estimate.durationMin} min</p></div>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Prix estimé</p><p className="text-lg font-bold gold-text">{formatFcfa(estimate.price)}</p></div>
                 </div>
-                <p className="mt-2 text-center text-sm text-neutral-300">
+                <p className="mt-4 text-center text-xs text-neutral-400">
                   {estimate.airport ? "Tarif fixe Aéroport AIBD. " : ""}Prix indicatif, payé à la fin de la course.
                   {estimate.source === "fallback" ? " (Estimation approximative.)" : ""}
                 </p>
@@ -393,7 +395,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       <Step n={2} title="Date et heure">
         <div>
           <p className="label" id="date-label">Jour</p>
-          <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2" role="radiogroup" aria-labelledby="date-label">
+          <div className="flex snap-x divide-x divide-line overflow-x-auto border border-line" role="radiogroup" aria-labelledby="date-label">
             {dates.map((d) => {
               const [wd, day, month] = formatDateShort(d).replace(/\./g, "").split(" ");
               const today = d === dakarDate(Date.now());
@@ -405,9 +407,9 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                   aria-checked={date === d}
                   aria-label={today ? "Aujourd'hui" : formatDateShort(d)}
                   onClick={() => setDate(d)}
-                  className={`flex w-[4.25rem] shrink-0 snap-start flex-col items-center rounded-2xl border py-2 transition ${date === d ? "chip-on" : "chip-off"}`}
+                  className={`flex w-[4.5rem] shrink-0 snap-start flex-col items-center py-2.5 transition ${date === d ? "chip-on" : "chip-off"}`}
                 >
-                  <span className={`text-[11px] font-semibold uppercase ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
+                  <span className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
                   <span className="text-xl font-bold leading-tight">{day}</span>
                   <span className={`text-[11px] ${date === d ? "text-neutral-300" : "text-neutral-500"}`}>{month}</span>
                 </button>
@@ -440,8 +442,8 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                   if (!group.length) return null;
                   return (
                     <div key={label as string}>
-                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-500">{label as string}</p>
-                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">{label as string}</p>
+                      <div className="cells grid-cols-4 sm:grid-cols-6">
                         {group.map((s) => (
                           <button
                             key={s.start}
@@ -468,7 +470,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       <Step n={3} title="Passagers">
         <div>
           <p className="label" id="pax-label">Nombre de passagers</p>
-          <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="pax-label">
+          <div className="cells grid-cols-4" role="radiogroup" aria-labelledby="pax-label">
             {[1, 2, 3, 4].map((n) => (
               <button key={n} type="button" role="radio" aria-checked={passengers === n} onClick={() => setPassengers(n)}
                 className={`chip ${passengers === n ? "chip-on" : "chip-off"}`}>
@@ -519,21 +521,22 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         </div>
       </Step>
 
-      {submitError && <p className="alert-error" role="alert">{submitError}</p>}
-      <p className="px-2 text-center text-sm text-neutral-600">
+      {submitError && <p className="alert-error mt-2" role="alert">{submitError}</p>}
+      <p className="mt-4 border-t border-line pt-6 text-center text-sm text-neutral-500">
         Aucun paiement en ligne : vous payez à la fin de la course, en espèces, Wave ou Orange Money.
       </p>
 
       {/* Barre de confirmation fixe en bas de l'écran */}
-      <div className="sticky bottom-0 z-[900] -mx-4 border-t border-line bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
-        <div className="flex items-center gap-3">
+      <div className="sticky bottom-0 z-[900] -mx-5 mt-6 bg-ink text-white sm:mx-0">
+        <div aria-hidden className="gold-rule" />
+        <div className="flex items-center gap-3 px-5 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-neutral-500">{estimate ? "Prix estimé" : "Prix"}</p>
-            <p className="truncate text-lg font-bold tabular-nums">
-              {estimate ? formatFcfa(estimate.price) : <span className="text-sm font-medium text-neutral-500">Indiquez votre trajet</span>}
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-400">{estimate ? "Prix estimé" : "Prix"}</p>
+            <p className="truncate text-lg font-semibold tabular-nums">
+              {estimate ? <span className="gold-text">{formatFcfa(estimate.price)}</span> : <span className="text-sm font-normal text-neutral-400">Indiquez votre trajet</span>}
             </p>
           </div>
-          <button type="submit" className="btn-primary shrink-0 px-5" disabled={submitting}>
+          <button type="submit" className="btn-gold shrink-0 px-5" disabled={submitting}>
             {submitting ? "Envoi…" : "Confirmer"}
           </button>
         </div>

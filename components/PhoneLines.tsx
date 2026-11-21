@@ -18,38 +18,37 @@ export function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) 
   );
 }
 
-/** Liste des lignes « Appeler pour réserver ». */
+/** Lignes « Appeler pour réserver » : une ligne par numéro, séparées par un filet. */
 export default function PhoneLines({ lines, tone = "light" }: { lines: ContactLine[]; tone?: "light" | "dark" }) {
   const dark = tone === "dark";
   return (
-    <ul className="space-y-2.5">
+    <ul className={`divide-y border-y ${dark ? "divide-white/10 border-white/10" : "divide-line border-line"}`}>
       {lines.map((l) => (
-        <li
-          key={l.phone}
-          className={`flex items-center gap-3 rounded-2xl border p-2.5 pl-4 ${dark ? "border-white/15 bg-white/[0.04]" : "border-line bg-white"}`}
-        >
+        <li key={l.phone} className="flex items-center gap-3 py-4">
           <div className="min-w-0 flex-1">
-            <p className={`text-xs font-semibold uppercase tracking-wider ${dark ? "text-gold-light" : "text-gold-dark"}`}>{l.label}</p>
-            <a href={`tel:${l.phone}`} className={`block truncate text-lg font-bold tabular-nums ${dark ? "text-white" : "text-ink"}`}>
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${dark ? "text-gold-light" : "text-gold-dark"}`}>{l.label}</p>
+            <a href={`tel:${l.phone}`} className={`mt-0.5 block truncate text-xl font-semibold tabular-nums tracking-wide ${dark ? "text-white" : "text-ink"}`}>
               {formatSenegalPhone(l.phone)}
             </a>
           </div>
           <a
             href={`tel:${l.phone}`}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-gold-light to-gold text-ink"
+            className="flex h-12 w-12 shrink-0 items-center justify-center bg-gold-grad text-ink"
             aria-label={`Appeler ${l.label} au ${formatSenegalPhone(l.phone)}`}
           >
             <PhoneIcon />
           </a>
-          {l.whatsapp && <a
-            href={waLink(l.phone, "Bonjour Luxus Asaad, je souhaite réserver une course.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1a7f43] text-white"
-            aria-label={`Écrire sur WhatsApp à ${l.label}`}
-          >
-            <WhatsAppIcon />
-          </a>}
+          {l.whatsapp && (
+            <a
+              href={waLink(l.phone, "Bonjour Luxus Asaad, je souhaite réserver une course.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex h-12 w-12 shrink-0 items-center justify-center border ${dark ? "border-white/25 text-white hover:bg-white hover:text-ink" : "border-ink text-ink hover:bg-ink hover:text-white"} transition`}
+              aria-label={`Écrire sur WhatsApp à ${l.label}`}
+            >
+              <WhatsAppIcon />
+            </a>
+          )}
         </li>
       ))}
     </ul>

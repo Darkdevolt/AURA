@@ -96,19 +96,19 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         {date !== today && <p className="text-center"><Link href="/admin" className="text-sm underline">Revenir à aujourd&apos;hui</Link></p>}
 
         {/* Vue chronologique */}
-        <div aria-label="Vue chronologique" className="relative mt-2 h-16 rounded-lg bg-neutral-100">
+        <div aria-label="Vue chronologique" className="relative mt-2 h-16 bg-neutral-100">
           {hours.map((h) => (
             <div key={h} className="absolute top-0 h-full border-l border-neutral-300" style={{ left: `${((h * 60 - open) / span) * 100}%` }}>
               <span className="absolute -top-0.5 left-0.5 text-[10px] text-neutral-500">{h}h</span>
             </div>
           ))}
           {(blocksRes.data ?? []).map((s) => (
-            <div key={s.id} title={`Bloqué : ${s.reason ?? ""}`} className="absolute bottom-1 h-5 rounded bg-[repeating-linear-gradient(45deg,#999_0,#999_4px,#ccc_4px,#ccc_8px)]"
+            <div key={s.id} title={`Bloqué : ${s.reason ?? ""}`} className="absolute bottom-1 h-5 bg-[repeating-linear-gradient(45deg,#999_0,#999_4px,#ccc_4px,#ccc_8px)]"
               style={{ left: `${pos(s.start_at)}%`, width: `${Math.max(1, pos(s.end_at) - pos(s.start_at))}%` }} />
           ))}
           {bookings.map((b) => (
             <a key={b.id} href={`#${b.reference}`} title={`${b.reference} ${dakarTime(Date.parse(b.start_at))} ${STATUS_LABELS[b.status]}`}
-              className={`absolute top-5 h-5 rounded ${BAR[b.status]} ring-1 ring-white`}
+              className={`absolute top-5 h-5 ${BAR[b.status]} ring-1 ring-white`}
               style={{ left: `${pos(b.start_at)}%`, width: `${Math.max(1.5, pos(b.blocked_until) - pos(b.start_at))}%` }} />
           ))}
         </div>

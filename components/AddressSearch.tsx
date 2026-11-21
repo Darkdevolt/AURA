@@ -83,7 +83,7 @@ export default function AddressSearch({ label, placeholder, value, onSelect }: P
         <ul
           id={`${id}-list`}
           role="listbox"
-          className="absolute z-[1100] mt-1 max-h-72 w-full overflow-auto rounded-xl border border-line bg-white shadow-lg"
+          className="absolute z-[1100] mt-1 max-h-72 w-full overflow-auto border border-line bg-white shadow-lg"
         >
           {status === "empty" && (
             <li className="px-4 py-3 text-[15px] text-neutral-700">
@@ -99,7 +99,7 @@ export default function AddressSearch({ label, placeholder, value, onSelect }: P
             <li key={`${r.lat},${r.lng},${i}`} role="option" aria-selected={false}>
               <button
                 type="button"
-                className="block min-h-12 w-full px-4 py-2.5 text-left text-[15px] hover:bg-cream focus:bg-cream"
+                className="block min-h-12 w-full px-4 py-2.5 text-left text-[15px] hover:bg-neutral-50 focus:bg-neutral-50"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onSelect(r);
