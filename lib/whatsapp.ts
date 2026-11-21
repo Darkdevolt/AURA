@@ -23,6 +23,7 @@ export interface BookingSummary {
   estimated_price: number;
   comment?: string | null;
   tracking_url?: string;
+  receipt_url?: string;
   service?: ServiceKind;
 }
 
@@ -44,6 +45,7 @@ export function bookingWhatsAppMessage(b: BookingSummary): string {
     b.comment ? `Commentaire : ${b.comment}` : null,
     `Point de départ : ${googleMapsLink({ lat: b.pickup_lat, lng: b.pickup_lng })}`,
     b.tracking_url ? `Suivi du chauffeur : ${b.tracking_url}` : null,
+    b.receipt_url ? `Mon reçu : ${b.receipt_url}` : null,
   ]
     .filter((l) => l !== null)
     .join("\n");

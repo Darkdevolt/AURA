@@ -165,7 +165,12 @@ export default function BookingCard({ b, showDate = false, vehicles, drivers, si
         <a className="btn-whatsapp text-[12px]" href={waLink(b.customer_phone, confirmMsg)} target="_blank" rel="noopener noreferrer">
           Confirmer + lien de suivi
         </a>
-        {waveEnabled ? (
+        {b.status === "completed" ? (
+          <a className="btn-outline text-[12px]" target="_blank" rel="noopener noreferrer"
+            href={waLink(b.customer_phone, `Bonjour ${b.customer_name}, merci d'avoir voyagé avec Luxus Asaad ! Voici votre reçu ${b.reference} : ${siteUrl}/recu/${b.reference}?k=${b.tracking_token}`)}>
+            Envoyer le reçu
+          </a>
+        ) : waveEnabled ? (
           <button type="button" className="btn-outline text-[12px]" onClick={sendWave} disabled={waveState === "loading" || b.paid_online}>
             {b.paid_online ? "Déjà payé par Wave" : waveState === "loading" ? "Création du lien…" : "Envoyer un lien Wave"}
           </button>

@@ -213,8 +213,15 @@ export default function LookupForm({ whatsapp }: { whatsapp: string }) {
             href={waLink(whatsapp, `Bonjour Luxus Asaad, je vous contacte au sujet de ma réservation ${booking.reference}.`)}>
             Nous écrire sur WhatsApp
           </a>
-          {booking.tracking_token && ["pending", "confirmed", "in_progress"].includes(booking.status) && (
-            <a className="btn-outline w-full text-[12px]" href={`/suivi/${booking.reference}?k=${booking.tracking_token}`}>Suivre mon chauffeur</a>
+          {booking.tracking_token && (
+            <div className="grid grid-cols-2 gap-2">
+              <a className="btn-outline text-[12px]" href={`/recu/${booking.reference}?k=${booking.tracking_token}`}>
+                {booking.status === "completed" ? "Mon reçu" : "Ma confirmation"}
+              </a>
+              {["pending", "confirmed", "in_progress"].includes(booking.status) && (
+                <a className="btn-outline text-[12px]" href={`/suivi/${booking.reference}?k=${booking.tracking_token}`}>Suivre mon chauffeur</a>
+              )}
+            </div>
           )}
           {cancellable && (
             <button type="button" className="btn w-full border border-rose-300 bg-white text-rose-800 hover:bg-rose-50" onClick={cancel} disabled={loading}>

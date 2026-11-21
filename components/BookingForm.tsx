@@ -277,7 +277,11 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         if (res.status === 409) void loadSlots();
         return;
       }
-      setConfirmation({ ...data, tracking_url: `${window.location.origin}/suivi/${data.reference}?k=${data.tracking_token}` });
+      setConfirmation({
+        ...data,
+        tracking_url: `${window.location.origin}/suivi/${data.reference}?k=${data.tracking_token}`,
+        receipt_url: `${window.location.origin}/recu/${data.reference}?k=${data.tracking_token}`,
+      });
       try {
         localStorage.setItem("la:last", JSON.stringify({ reference: data.reference, phone: data.customer_phone }));
         localStorage.setItem("la:client", JSON.stringify({ name, phone: data.customer_phone }));
@@ -326,9 +330,10 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               <WhatsAppIcon className="h-6 w-6" /> Envoyer sur WhatsApp
             </a>
             <p className="mt-2 text-center text-xs text-neutral-500">Envoyé au {formatSenegalPhone(confirmation.whatsapp_number)}</p>
-            {confirmation.tracking_url && (
-              <a href={confirmation.tracking_url} className="btn-outline mt-3 w-full text-[12px]">Suivre mon chauffeur</a>
-            )}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {confirmation.receipt_url && <a href={confirmation.receipt_url} className="btn-outline text-[12px]">Mon reçu (PDF)</a>}
+              {confirmation.tracking_url && <a href={confirmation.tracking_url} className="btn-outline text-[12px]">Suivre mon chauffeur</a>}
+            </div>
           </div>
         </div>
         <div className="card">
