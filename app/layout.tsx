@@ -36,6 +36,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const lines = validLines(settings.contact_lines);
   return (
     <html lang="fr" className={goldman.variable}>
+      <head>
+        {/* Connexions ouvertes d'avance : recherche d'adresse et fonds de carte répondent plus vite */}
+        <link rel="preconnect" href="https://photon.komoot.io" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://a.tile.openstreetmap.fr" />
+        <link rel="dns-prefetch" href="https://b.tile.openstreetmap.fr" />
+        <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+      </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <a href="#contenu" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[2000] focus: focus:bg-white focus:px-3 focus:py-2">
           Aller au contenu
@@ -43,6 +50,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Header line={lines[0]} />
         <main id="contenu" className="flex-1 pb-20 print:pb-0">{children}</main>
         <Footer lines={lines} />
+        {/* Safari iOS : active le retour visuel au toucher (:active) */}
+        <script dangerouslySetInnerHTML={{ __html: "document.addEventListener('touchstart',function(){},{passive:true})" }} />
       </body>
     </html>
   );

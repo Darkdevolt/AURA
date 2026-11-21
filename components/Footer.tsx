@@ -7,7 +7,7 @@ export default function Footer({ lines }: { lines: ContactLine[] }) {
   return (
     <footer className="bg-ink-grad text-neutral-400 print:hidden">
       <div aria-hidden className="gold-rule" />
-      <div className="wrap grid gap-10 py-12 sm:grid-cols-2">
+      <div className="wrap grid grid-cols-[minmax(0,1fr)] gap-10 py-12 sm:grid-cols-2">
         <div>
           <Logo variant="full" height={104} alt="Luxus Asaad" />
           <p className="mt-5 text-sm leading-relaxed">

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AddressSearch from "./AddressSearch";
 import { WhatsAppIcon } from "./PhoneLines";
@@ -79,6 +79,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   useEffect(() => setDates(bookableDates(Date.now(), { ...settings })), [settings]);
   const [date, setDate] = useState<string>("");
   const [slots, setSlots] = useState<SlotOption[] | null>(null);
+  const [slotsDate, setSlotsDate] = useState("");
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState("");
   const [slot, setSlot] = useState<string>("");
@@ -95,6 +96,15 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const phoneOk = normalizeSenegalPhone(phone) !== null;
+
+  // Clavier ouvert (saisie en cours) : la barre « Confirmer » s'efface pour laisser voir le champ et les suggestions
+  const [typing, setTyping] = useState(false);
+  const onFocusChange = (e: React.FocusEvent<HTMLFormElement>) => {
+    const t = e.target as HTMLElement;
+    const field = t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && !["radio", "checkbox", "button"].includes((t as HTMLInputElement).type));
+    if (e.type === "focus") setTyping(field);
+    else setTyping(false);
+  };
 
   // Pré-remplissage : « Réserver à nouveau » depuis l'historique, et coordonnées déjà saisies
   useEffect(() => {
@@ -171,7 +181,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     const t = setTimeout(async () => {
       try {
         const res = await fetch(
-          `/api/estimate?from=${pickup.lat},${pickup.lng}&to=${dropoff.lat},${dropoff.lng}`,
+          `/api/estimate?from=${pickup.lat.toFixed(5)},${pickup.lng.toFixed(5)}&to=${dropoff.lat.toFixed(5)},${dropoff.lng.toFixed(5)}`,
           { signal: c.signal },
         );
         const data = await res.json();
@@ -184,7 +194,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       } finally {
         if (!c.signal.aborted) setEstimateLoading(false);
       }
-    }, 300);
+    }, 50);
     return () => {
       clearTimeout(t);
       c.abort();
@@ -202,6 +212,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setSlots(data.slots);
+      setSlotsDate(date);
       setSlot((cur) => (data.slots.some((s: SlotOption) => s.start === cur) ? cur : ""));
     } catch (e) {
       setSlots(null);
@@ -214,6 +225,35 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   useEffect(() => {
     void loadSlots();
   }, [loadSlots]);
+
+  // Dès que le départ est indiqué, le premier jour disponible est choisi : les créneaux arrivent sans attendre
+  const autoDate = useRef<string | null>(null);
+  useEffect(() => {
+    if (pickup && !date && dates.length) {
+      autoDate.current = dates[0];
+      setDate(dates[0]);
+    }
+  }, [pickup, date, dates]);
+  // Jour choisi automatiquement mais complet : on passe au suivant (le client n'a rien choisi lui-même)
+  useEffect(() => {
+    if (!slots || slots.length || !date || slotsDate !== date || autoDate.current !== date) return;
+    const next = dates[dates.indexOf(date) + 1];
+    if (next) {
+      autoDate.current = next;
+      setDate(next);
+    }
+  }, [slots, slotsDate, date, dates]);
+
+  // Précharge les cartes pendant que le navigateur est libre : ouverture instantanée au premier toucher
+  useEffect(() => {
+    const load = () => {
+      void import("./map/PickerMap");
+      void import("./map/RouteMap");
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(load);
+    else setTimeout(load, 1500);
+  }, []);
 
   // ---------------------------------------------------------------- Envoi
   const missing: string[] = [];
@@ -346,11 +386,11 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
 
   // ---------------------------------------------------------------- Formulaire
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate onFocus={onFocusChange} onBlur={onFocusChange}>
       <Step n={1} title="Votre trajet">
         <div className="relative space-y-4 pl-9">
           <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-px bg-gradient-to-b from-ink via-neutral-300 to-gold" />
-          <div className="relative">
+          <div className="relative [&_.label]:pr-28">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-ink text-xs font-bold text-gold-light">A</span>
             <MapPinButton onClick={() => setPicking("pickup")} label="Placer le point de départ sur la carte" />
             <AddressSearch
@@ -371,7 +411,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               <input id="pickup-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} />
             </div>
           </div>
-          <div className="relative">
+          <div className="relative [&_.label]:pr-28">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-gold-grad text-xs font-bold text-ink">B</span>
             <MapPinButton onClick={() => setPicking("dropoff")} label="Placer la destination sur la carte" />
             <AddressSearch
@@ -471,7 +511,10 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
                   role="radio"
                   aria-checked={date === d}
                   aria-label={today ? "Aujourd'hui" : formatDateShort(d)}
-                  onClick={() => setDate(d)}
+                  onClick={() => {
+                    autoDate.current = null;
+                    setDate(d);
+                  }}
                   className={`flex w-[4.5rem] shrink-0 snap-start flex-col items-center py-2.5 transition ${date === d ? "chip-on" : "chip-off"}`}
                 >
                   <span className={`text-[10px] font-semibold uppercase tracking-[0.06em] ${date === d ? "text-gold-light" : "text-neutral-500"}`}>{today ? "Auj." : wd}</span>
@@ -592,7 +635,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       </p>
 
       {/* Barre de confirmation fixe en bas de l'écran */}
-      <div className="sticky bottom-0 z-[900] -mx-5 mt-6 bg-ink text-white sm:mx-0">
+      <div className={`${typing ? "relative" : "sticky"} bottom-0 z-[900] -mx-5 mt-6 bg-ink pb-[env(safe-area-inset-bottom)] text-white sm:mx-0`}>
         <div aria-hidden className="gold-rule" />
         <div className="flex items-center gap-3 px-5 py-3">
           <div className="min-w-0 flex-1">

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { searchAddress } from "@/lib/nominatim";
+import { matchPopular, POPULAR_PLACES } from "@/lib/places";
 import type { Place } from "@/lib/types";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   /** Ouvre la carte pour placer le point à la main (adresse introuvable). */
   onMapRequest?: () => void;
 }
+
+const SUGGESTED = POPULAR_PLACES.slice(0, 5).map(({ lat, lng, address }) => ({ lat, lng, address }));
 
 export default function AddressSearch({ label, placeholder, value, onSelect, onMapRequest }: Props) {
   const id = useId();
@@ -31,11 +34,16 @@ export default function AddressSearch({ label, placeholder, value, onSelect, onM
   useEffect(() => {
     if (!typed.current) return;
     const query = q.trim();
-    if (query.length < 3) {
-      setResults([]);
+    // Lieux fréquents : affichés immédiatement, sans attendre le réseau
+    const popular = matchPopular(query);
+    if (query.length < 2) {
+      ctrl.current?.abort();
+      setResults(query ? popular : SUGGESTED);
       setStatus("idle");
       return;
     }
+    setResults(popular);
+    setOpen(true);
     const t = setTimeout(async () => {
       ctrl.current?.abort();
       const c = new AbortController();
@@ -44,15 +52,16 @@ export default function AddressSearch({ label, placeholder, value, onSelect, onM
       try {
         const r = await searchAddress(query, c.signal);
         if (c.signal.aborted) return;
-        setResults(r);
-        setStatus(r.length ? "idle" : "empty");
+        const merged = [...popular, ...r.filter((x) => !popular.some((p) => p.address === x.address))].slice(0, 8);
+        setResults(merged);
+        setStatus(merged.length ? "idle" : "empty");
         setOpen(true);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
-        setStatus("error");
+        setStatus(popular.length ? "idle" : "error");
         setOpen(true);
       }
-    }, 700);
+    }, 250);
     return () => clearTimeout(t);
   }, [q]);
 
@@ -73,19 +82,25 @@ export default function AddressSearch({ label, placeholder, value, onSelect, onM
           typed.current = true;
           setQ(e.target.value);
         }}
-        onFocus={() => results.length && setOpen(true)}
+        onFocus={() => {
+          // Champ vide : propose tout de suite les lieux les plus demandés
+          if (!q.trim()) {
+            setResults(SUGGESTED);
+            setStatus("idle");
+          }
+          setOpen(true);
+        }}
         onBlur={() => setTimeout(() => setOpen(false), 200)}
         aria-autocomplete="list"
         aria-controls={`${id}-list`}
         aria-expanded={open}
         role="combobox"
       />
-      {status === "loading" && <p className="mt-1 text-sm text-neutral-600">Recherche…</p>}
-      {open && (
+      {open && (results.length > 0 || status === "loading" || status === "empty" || status === "error") && (
         <ul
           id={`${id}-list`}
           role="listbox"
-          className="absolute z-[1100] mt-1 max-h-72 w-full overflow-auto border border-line bg-white shadow-lg"
+          className="absolute z-[1100] mt-1 max-h-[min(18rem,50dvh)] w-full overflow-auto overscroll-contain border border-line bg-white shadow-lg"
         >
           {status === "empty" && (
             <li className="px-4 py-3 text-[15px] text-neutral-700">
@@ -104,6 +119,10 @@ export default function AddressSearch({ label, placeholder, value, onSelect, onM
                   className="mt-2 block font-semibold text-gold-dark underline underline-offset-4">Placer le point sur la carte</button>
               )}
             </li>
+          )}
+          {status === "loading" && !results.length && <li className="px-4 py-3 text-[15px] text-neutral-500">Recherche…</li>}
+          {!q.trim() && results.length > 0 && (
+            <li className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500" aria-hidden>Lieux fréquents</li>
           )}
           {results.map((r, i) => (
             <li key={`${r.lat},${r.lng},${i}`} role="option" aria-selected={false}>

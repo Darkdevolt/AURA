@@ -18,5 +18,9 @@ export async function GET(req: Request) {
   if (!a || !b || !isInSenegal(a) || !isInSenegal(b)) return jsonError("Adresses invalides.");
   const [route, settings] = await Promise.all([estimateRoute(a, b), getSettings()]);
   const { price, airport } = computePrice(route.distanceKm, settings, a, b);
-  return NextResponse.json({ ...route, price, airport });
+  // Même trajet = même réponse : gardée en cache par Vercel (les réglages de prix changent rarement)
+  return NextResponse.json(
+    { ...route, price, airport },
+    { headers: { "Cache-Control": route.source === "osrm" ? "public, s-maxage=3600, stale-while-revalidate=86400" : "no-store" } },
+  );
 }

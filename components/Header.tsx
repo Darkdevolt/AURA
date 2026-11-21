@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HeaderShell from "./HeaderShell";
 import Logo from "./Logo";
 import NavLinks from "./NavLinks";
 import { PhoneIcon } from "./PhoneLines";
@@ -6,7 +7,7 @@ import type { ContactLine } from "@/lib/types";
 
 export default function Header({ line }: { line?: ContactLine }) {
   return (
-    <header className="sticky top-0 z-[1000] bg-ink text-white print:hidden">
+    <HeaderShell>
       <div className="wrap flex items-center justify-between gap-3 pt-3">
         <Link href="/" className="flex min-w-0 items-center gap-2" aria-label="Luxus Asaad — accueil">
           <Logo height={32} />
@@ -25,6 +26,6 @@ export default function Header({ line }: { line?: ContactLine }) {
         <NavLinks />
       </nav>
       <div aria-hidden className="gold-rule opacity-60" />
-    </header>
+    </HeaderShell>
   );
 }
