@@ -9,9 +9,11 @@ interface Props {
   placeholder: string;
   value: Place | null;
   onSelect: (p: Place) => void;
+  /** Ouvre la carte pour placer le point à la main (adresse introuvable). */
+  onMapRequest?: () => void;
 }
 
-export default function AddressSearch({ label, placeholder, value, onSelect }: Props) {
+export default function AddressSearch({ label, placeholder, value, onSelect, onMapRequest }: Props) {
   const id = useId();
   const [q, setQ] = useState(value?.address ?? "");
   const [results, setResults] = useState<Place[]>([]);
@@ -87,12 +89,20 @@ export default function AddressSearch({ label, placeholder, value, onSelect }: P
         >
           {status === "empty" && (
             <li className="px-4 py-3 text-[15px] text-neutral-700">
-              Adresse introuvable. Essayez un quartier ou un lieu connu, ou placez le repère sur la carte.
+              Adresse introuvable. Essayez un quartier ou un lieu connu{onMapRequest ? "," : ", ou placez le repère sur la carte."}
+              {onMapRequest && (
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpen(false); onMapRequest(); }}
+                  className="mt-2 block font-semibold text-gold-dark underline underline-offset-4">ou placez-le vous-même sur la carte</button>
+              )}
             </li>
           )}
           {status === "error" && (
             <li className="px-4 py-3 text-[15px] text-rose-800">
-              Recherche indisponible (connexion ?). Placez le repère directement sur la carte.
+              Recherche indisponible (connexion ?).
+              {onMapRequest && (
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpen(false); onMapRequest(); }}
+                  className="mt-2 block font-semibold text-gold-dark underline underline-offset-4">Placer le point sur la carte</button>
+              )}
             </li>
           )}
           {results.map((r, i) => (

@@ -83,7 +83,7 @@ export default function Tracker({ reference, k }: { reference: string; k: string
       </div>
       <TrackMap pickup={{ lat: t.pickup_lat, lng: t.pickup_lng }} dropoff={{ lat: t.dropoff_lat, lng: t.dropoff_lng }} driver={driver} />
       <p className="text-sm text-neutral-600">
-        {driver ? "Le carré doré indique la position de votre chauffeur (mise à jour automatique)." : "La position du chauffeur apparaîtra ici dès qu'il sera en route."}
+        {driver ? "La voiture dorée indique la position de votre chauffeur (mise à jour automatique)." : "La position du chauffeur apparaîtra ici dès qu'il sera en route."}
       </p>
       <div className="text-[15px]">
         <p><span className="font-semibold text-neutral-500">A</span> {t.pickup_address}</p>

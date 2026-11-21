@@ -30,7 +30,7 @@ export default function LegalPage() {
         sujet et à tenir notre comptabilité. Elles ne sont jamais vendues ni utilisées à des fins publicitaires.
       </p>
       <p>
-        La recherche d&apos;adresse et la carte utilisent les services OpenStreetMap (Nominatim) et OSRM : les termes
+        La recherche d&apos;adresse et la carte utilisent les services OpenStreetMap (Nominatim, fonds de carte), Esri (fonds de carte et satellite) et OSRM : les termes
         recherchés et les positions leur sont transmis pour afficher les résultats et calculer l&apos;itinéraire.
       </p>
 

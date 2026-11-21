@@ -16,6 +16,8 @@ export interface RouteEstimate {
   distanceKm: number;
   durationMin: number;
   source: "osrm" | "fallback";
+  /** Tracé [lat, lng] pour l'affichage sur la carte */
+  geometry?: [number, number][];
 }
 
 /** Estimation de secours : vol d'oiseau × 1,3 à 20 km/h de moyenne */
@@ -25,18 +27,22 @@ export function fallbackRoute(a: LatLng, b: LatLng): RouteEstimate {
     distanceKm: Math.round(distanceKm * 10) / 10,
     durationMin: Math.max(5, Math.ceil((distanceKm / 20) * 60)),
     source: "fallback",
+    geometry: [[a.lat, a.lng], [b.lat, b.lng]],
   };
 }
 
 /** Distance et durée par la route via l'API publique OSRM, avec repli. */
 export async function estimateRoute(a: LatLng, b: LatLng, timeoutMs = 5000): Promise<RouteEstimate> {
-  const url = `https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=false`;
+  const url = `https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=simplified&geometries=geojson`;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(url, { signal: ctrl.signal });
     if (!res.ok) throw new Error(`OSRM ${res.status}`);
-    const data = (await res.json()) as { code: string; routes?: { distance: number; duration: number }[] };
+    const data = (await res.json()) as {
+      code: string;
+      routes?: { distance: number; duration: number; geometry?: { coordinates: [number, number][] } }[];
+    };
     const r = data.routes?.[0];
     if (data.code !== "Ok" || !r) throw new Error("OSRM sans itinéraire");
     return {
@@ -44,6 +50,7 @@ export async function estimateRoute(a: LatLng, b: LatLng, timeoutMs = 5000): Pro
       // OSRM est optimiste pour la circulation dakaroise : on garde au moins 20 km/h
       durationMin: Math.max(5, Math.ceil(Math.max(r.duration / 60, (r.distance / 1000 / 20) * 60 * 0.75))),
       source: "osrm",
+      geometry: r.geometry?.coordinates?.map(([lng, lat]) => [lat, lng] as [number, number]),
     };
   } catch {
     return fallbackRoute(a, b);

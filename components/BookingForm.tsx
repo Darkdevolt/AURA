@@ -3,9 +3,10 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import AddressSearch from "./AddressSearch";
 import { WhatsAppIcon } from "./PhoneLines";
-import type { PointKind } from "./MapPicker";
+import LocationPicker, { type PickKind } from "./map/LocationPicker";
 import { isInSenegal } from "@/lib/geo";
 import { reverseGeocode } from "@/lib/nominatim";
 import { formatSenegalPhone, normalizeSenegalPhone } from "@/lib/phone";
@@ -16,14 +17,20 @@ import type { LatLng, Place } from "@/lib/types";
 import type { PublicSettings } from "@/lib/server-data";
 import { bookingWhatsAppMessage, waLink, type BookingSummary } from "@/lib/whatsapp";
 
-const MapPicker = dynamic(() => import("./MapPicker"), {
+const RouteMap = dynamic(() => import("./map/RouteMap"), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-60 items-center justify-center border border-line bg-neutral-100 text-sm text-neutral-600 sm:h-72">
-      Chargement de la carte…
-    </div>
-  ),
+  loading: () => <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 text-sm text-neutral-500">Chargement de la carte…</div>,
 });
+
+function MapPinButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label}
+      className="absolute right-0 top-0 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-gold-dark hover:text-ink">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" /></svg>
+      Sur la carte
+    </button>
+  );
+}
 
 interface Estimate {
   distanceKm: number;
@@ -31,6 +38,7 @@ interface Estimate {
   price: number;
   airport: boolean;
   source: "osrm" | "fallback";
+  geometry?: [number, number][];
 }
 
 interface SlotOption {
@@ -58,7 +66,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   const [pickup, setPickup] = useState<Place | null>(null);
   const [pickupNote, setPickupNote] = useState("");
   const [dropoff, setDropoff] = useState<Place | null>(null);
-  const [active, setActive] = useState<PointKind>("pickup");
+  const [picking, setPicking] = useState<PickKind | null>(null);
   const [geoState, setGeoState] = useState<"idle" | "loading" | "error">("idle");
   const [geoError, setGeoError] = useState("");
 
@@ -98,7 +106,6 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         setDropoff(pre.dropoff);
         if (pre.pickupNote) setPickupNote(pre.pickupNote);
         if (pre.passengers) setPassengers(pre.passengers);
-        setActive("dropoff");
         localStorage.removeItem("la:prefill");
       }
     } catch {
@@ -107,7 +114,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   }, []);
 
   // ---------------------------------------------------------------- Points
-  const setPoint = useCallback(async (kind: PointKind, p: LatLng, address?: string) => {
+  const setPoint = useCallback(async (kind: PickKind, p: LatLng, address?: string) => {
     if (!isInSenegal(p)) {
       setGeoError("Ce point est en dehors du Sénégal.");
       return;
@@ -127,24 +134,23 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     setGeoError("");
     if (!("geolocation" in navigator)) {
       setGeoState("error");
-      setGeoError("La géolocalisation n'est pas disponible sur cet appareil. Recherchez votre adresse ou touchez la carte.");
+      setGeoError("La géolocalisation n'est pas disponible sur cet appareil. Recherchez votre adresse ou placez-la sur la carte.");
       return;
     }
     setGeoState("loading");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGeoState("idle");
-        setActive("dropoff");
         void setPoint("pickup", { lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       (err) => {
         setGeoState("error");
         setGeoError(
           err.code === err.PERMISSION_DENIED
-            ? "Vous avez refusé l'accès à votre position. Recherchez votre adresse ou touchez la carte pour placer le repère."
+            ? "Vous avez refusé l'accès à votre position. Recherchez votre adresse ou placez-vous sur la carte."
             : err.code === err.TIMEOUT
               ? "La position met trop de temps à arriver. Réessayez ou recherchez votre adresse."
-              : "Position introuvable. Recherchez votre adresse ou touchez la carte.",
+              : "Position introuvable. Recherchez votre adresse ou placez-vous sur la carte.",
         );
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
@@ -344,14 +350,13 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
           <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-px bg-gradient-to-b from-ink via-neutral-300 to-gold" />
           <div className="relative">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-ink text-xs font-bold text-gold-light">A</span>
+            <MapPinButton onClick={() => setPicking("pickup")} label="Placer le point de départ sur la carte" />
             <AddressSearch
               label="Point de départ"
               placeholder="Quartier, rue, lieu connu…"
               value={pickup}
-              onSelect={(p) => {
-                void setPoint("pickup", p, p.address);
-                setActive("dropoff");
-              }}
+              onSelect={(p) => void setPoint("pickup", p, p.address)}
+              onMapRequest={() => setPicking("pickup")}
             />
             <button type="button" onClick={useMyPosition} disabled={geoState === "loading"}
               className="mt-2 inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.05em] text-gold-dark hover:text-ink disabled:opacity-60">
@@ -360,38 +365,49 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
             </button>
             {geoError && <p className="alert-info mt-1" role="alert">{geoError}</p>}
             <div className="mt-2">
-              <label htmlFor="pickup-note" className="label">Repère / indications <span className="font-normal text-neutral-500">(facultatif)</span></label>
+              <label htmlFor="pickup-note" className="label">Repère / indications <span className="font-normal normal-case tracking-normal text-neutral-500">(facultatif)</span></label>
               <input id="pickup-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} />
             </div>
           </div>
           <div className="relative">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-gold-grad text-xs font-bold text-ink">B</span>
+            <MapPinButton onClick={() => setPicking("dropoff")} label="Placer la destination sur la carte" />
             <AddressSearch
               label="Destination"
               placeholder="Où allez-vous ?"
               value={dropoff}
               onSelect={(p) => void setPoint("dropoff", p, p.address)}
+              onMapRequest={() => setPicking("dropoff")}
             />
           </div>
         </div>
 
-        <div>
-          <p className="mb-2 text-sm text-neutral-600">Ou placez les repères sur la carte :</p>
-          <div className="cells mb-2 grid-cols-2" role="group" aria-label="Point à placer sur la carte">
-            {(["pickup", "dropoff"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={active === k}
-                onClick={() => setActive(k)}
-                className={`chip text-[13px] font-semibold uppercase tracking-[0.05em] ${active === k ? "chip-on" : "chip-off text-neutral-500"}`}
-              >
-                {k === "pickup" ? "A · Départ" : "B · Destination"}
+        {/* Aperçu du trajet */}
+        <div className="border border-line">
+          <div className="relative isolate h-56 overflow-hidden bg-neutral-100 sm:h-64">
+            {pickup || dropoff ? (
+              <RouteMap pickup={pickup} dropoff={dropoff} route={estimate?.geometry ?? null} onPick={setPicking} />
+            ) : (
+              <button type="button" onClick={() => setPicking("pickup")}
+                className="group absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-grad text-white">
+                <svg viewBox="0 0 24 24" width="34" height="34" fill="#e5b33a" aria-hidden><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" /></svg>
+                <span className="font-brand text-[14px]">Placer mon départ sur la carte</span>
+                <span className="max-w-xs px-6 text-center text-xs text-neutral-400">Pas d&apos;adresse précise ? Faites glisser la carte jusqu&apos;à l&apos;endroit exact où vous êtes.</span>
               </button>
-            ))}
+            )}
           </div>
-          <MapPicker pickup={pickup} dropoff={dropoff} active={active} onPick={(k, p) => void setPoint(k, p)} />
-          <p className="mt-1.5 text-xs text-neutral-500">Touchez la carte pour placer le repère sélectionné, ou faites-le glisser.</p>
+          <div className="grid grid-cols-2 divide-x divide-line border-t border-line">
+            {(["pickup", "dropoff"] as const).map((k) => {
+              const set = k === "pickup" ? pickup : dropoff;
+              return (
+                <button key={k} type="button" onClick={() => setPicking(k)}
+                  className="flex min-h-12 items-center justify-center gap-2 px-2 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-neutral-50">
+                  <span className={`flex h-5 w-5 items-center justify-center text-[10px] font-bold ${k === "pickup" ? "bg-ink text-gold-light" : "bg-gold-grad text-ink"}`}>{k === "pickup" ? "A" : "B"}</span>
+                  {set ? (k === "pickup" ? "Ajuster le départ" : "Ajuster l'arrivée") : k === "pickup" ? "Je suis ici" : "Je vais ici"}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {(estimateLoading || estimate || estimateError) && (
@@ -415,6 +431,29 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
           </div>
         )}
       </Step>
+
+      {picking &&
+        createPortal(
+          <LocationPicker
+            key={picking}
+            kind={picking}
+            value={picking === "pickup" ? pickup : dropoff}
+            other={picking === "pickup" ? dropoff : pickup}
+            note={pickupNote}
+            onClose={() => setPicking(null)}
+            onConfirm={(place, note) => {
+              if (picking === "pickup") {
+                setPickup(place);
+                if (note !== undefined) setPickupNote(note);
+                setPicking(dropoff ? null : "dropoff");
+              } else {
+                setDropoff(place);
+                setPicking(null);
+              }
+            }}
+          />,
+          document.body,
+        )}
 
       <Step n={2} title="Date et heure">
         <div>
