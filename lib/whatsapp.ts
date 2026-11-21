@@ -1,4 +1,6 @@
 import { googleMapsLink } from "./geo";
+import { SERVICE_LABELS } from "./service";
+import type { ServiceKind } from "./types";
 import { formatSenegalPhone, waDigits } from "./phone";
 import { formatFcfa } from "./pricing";
 import { formatDateLong, dakarTime } from "./time";
@@ -21,6 +23,7 @@ export interface BookingSummary {
   estimated_price: number;
   comment?: string | null;
   tracking_url?: string;
+  service?: ServiceKind;
 }
 
 export function bookingWhatsAppMessage(b: BookingSummary): string {
@@ -29,6 +32,7 @@ export function bookingWhatsAppMessage(b: BookingSummary): string {
     `Bonjour Luxus Asaad, voici ma réservation :`,
     ``,
     `N° : ${b.reference}`,
+    b.service && b.service !== "course" ? `Formule : ${SERVICE_LABELS[b.service]}` : null,
     `Nom : ${b.customer_name}`,
     `Téléphone : ${formatSenegalPhone(b.customer_phone)}`,
     `Départ : ${b.pickup_address}${b.pickup_note ? ` (${b.pickup_note})` : ""}`,
@@ -36,7 +40,7 @@ export function bookingWhatsAppMessage(b: BookingSummary): string {
     `Date : ${formatDateLong(start)}`,
     `Heure : ${dakarTime(start).replace(":", "h")}`,
     `Passagers : ${b.passengers}`,
-    `Prix estimé : ${formatFcfa(b.estimated_price)}`,
+    `${b.service && b.service !== "course" ? "Forfait" : "Prix estimé"} : ${formatFcfa(b.estimated_price)}`,
     b.comment ? `Commentaire : ${b.comment}` : null,
     `Point de départ : ${googleMapsLink({ lat: b.pickup_lat, lng: b.pickup_lng })}`,
     b.tracking_url ? `Suivi du chauffeur : ${b.tracking_url}` : null,

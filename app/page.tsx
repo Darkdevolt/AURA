@@ -1,4 +1,5 @@
 import BookingForm from "@/components/BookingForm";
+import { formatFcfa } from "@/lib/pricing";
 import { getSettings, publicSettings } from "@/lib/server-data";
 
 // Page pré-générée, rafraîchie toutes les 5 minutes (et immédiatement après un changement de réglages)
@@ -53,6 +54,34 @@ export default async function HomePage() {
           <BookingForm settings={settings} />
         </div>
       </section>
+
+      {/* Mise à disposition avec chauffeur */}
+      {(all.half_day_enabled || all.full_day_enabled) && (
+        <section className="relative mt-20 overflow-hidden bg-ink-grad text-white" aria-labelledby="dispo">
+          <div aria-hidden className="gold-rule" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_100%_100%,rgba(196,138,22,0.22),transparent_70%)]" />
+          <div className="wrap relative py-14">
+            <p className="eyebrow !text-gold-light">Diaspora · voyageurs · affaires</p>
+            <h2 id="dispo" className="font-brand mt-2 text-2xl leading-tight sm:text-3xl">Un chauffeur pour la journée</h2>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-neutral-300">
+              Vous arrivez à l&apos;aéroport AIBD ? Votre chauffeur vous attend, puis reste à votre disposition : hôtel,
+              famille, rendez-vous, démarches, visites. Un véhicule et un chauffeur rien que pour vous, à prix fixe.
+            </p>
+            <div className="mt-8 grid gap-px bg-white/10 sm:grid-cols-2">
+              {[
+                { key: "demi_journee", on: all.half_day_enabled, title: "Demi-journée", hours: all.half_day_hours, price: all.half_day_price },
+                { key: "journee", on: all.full_day_enabled, title: "Journée", hours: all.full_day_hours, price: all.full_day_price },
+              ].filter((o) => o.on).map((o) => (
+                <a key={o.key} href={`/?service=${o.key}#reserver`} className="group block bg-ink p-6 transition hover:bg-ink-soft">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400">{o.title} · {o.hours} h avec chauffeur</p>
+                  <p className="font-brand gold-text mt-2 text-3xl">{formatFcfa(o.price)}</p>
+                  <p className="mt-4 text-[12px] font-bold uppercase tracking-[0.08em] text-white underline-offset-4 group-hover:underline">Réserver →</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Comment ça marche */}
       <section className="wrap mt-20" aria-labelledby="how">

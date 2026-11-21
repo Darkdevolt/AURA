@@ -71,6 +71,7 @@ const INT_FIELDS = [
   "pickup_fee", "price_per_km", "min_fare", "round_to", "airport_fixed_price", "slot_minutes",
   "approach_minutes", "margin_minutes", "min_notice_minutes", "max_days_ahead",
   "max_active_per_phone", "max_per_ip_per_day",
+  "half_day_hours", "half_day_price", "full_day_hours", "full_day_price",
 ] as const;
 
 export async function updateSettings(_: ActionResult | null, form: FormData): Promise<ActionResult> {
@@ -83,6 +84,10 @@ export async function updateSettings(_: ActionResult | null, form: FormData): Pr
   }
   if ((patch.slot_minutes as number) < 5) return { ok: false, message: "Créneau trop court." };
   patch.airport_enabled = form.get("airport_enabled") === "on";
+  patch.half_day_enabled = form.get("half_day_enabled") === "on";
+  patch.full_day_enabled = form.get("full_day_enabled") === "on";
+  if ((patch.half_day_hours as number) < 1 || (patch.full_day_hours as number) < 1 || (patch.full_day_hours as number) > 14)
+    return { ok: false, message: "Durées de mise à disposition invalides (1 à 14 heures)." };
   const open = String(form.get("open_time"));
   const close = String(form.get("close_time"));
   if (!/^\d{2}:\d{2}$/.test(open) || !/^\d{2}:\d{2}$/.test(close) || open >= close)

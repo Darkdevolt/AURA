@@ -99,3 +99,18 @@ describe("bookableDates", () => {
     expect(dates).toHaveLength(13);
   });
 });
+
+describe("mise à disposition", () => {
+  it("la journée (10 h) doit se terminer avant 20h00", () => {
+    const times = availableSlots(MONDAY, 600, now, [], r, { endByClose: true }).map((s) => s.time);
+    expect(times[0]).toBe("08:00");
+    expect(times.at(-1)).toBe("10:00");
+    expect(checkStart(dakarToUtc(MONDAY, "10:30"), 600, now, [], r, { endByClose: true })).toBe("ends_after_close");
+  });
+  it("bloque le véhicule pendant toute la durée", () => {
+    const busy: BusyInterval[] = [{ start: dakarToUtc(MONDAY, "09:00"), end: dakarToUtc(MONDAY, "09:00") + (300 + 45) * MIN, kind: "booking" }];
+    const times = availableSlots(MONDAY, 20, now, busy, r).map((s) => s.time);
+    expect(times).not.toContain("13:30");
+    expect(times).toContain("15:00");
+  });
+});

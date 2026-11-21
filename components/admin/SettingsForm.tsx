@@ -33,6 +33,17 @@ export default function SettingsForm({ s }: { s: Settings }) {
       </fieldset>
 
       <fieldset className="card grid grid-cols-2 gap-3">
+        <legend className="px-1 text-lg font-bold">Mise à disposition avec chauffeur</legend>
+        <p className="col-span-2 text-sm text-neutral-600">Forfaits proposés aux clients (arrivée à l&apos;AIBD, journée de rendez-vous…). Le véhicule est bloqué pendant toute la durée.</p>
+        <label className="col-span-2 flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" name="half_day_enabled" defaultChecked={s.half_day_enabled} className="h-5 w-5" /> Proposer la demi-journée</label>
+        <Num name="half_day_hours" label="Demi-journée" value={s.half_day_hours} suffix="heures" />
+        <Num name="half_day_price" label="Prix demi-journée" value={s.half_day_price} suffix="FCFA" />
+        <label className="col-span-2 flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" name="full_day_enabled" defaultChecked={s.full_day_enabled} className="h-5 w-5" /> Proposer la journée</label>
+        <Num name="full_day_hours" label="Journée" value={s.full_day_hours} suffix="heures" />
+        <Num name="full_day_price" label="Prix journée" value={s.full_day_price} suffix="FCFA" />
+      </fieldset>
+
+      <fieldset className="card grid grid-cols-2 gap-3">
         <legend className="px-1 text-lg font-bold">Horaires et créneaux</legend>
         <p className="col-span-2 text-sm text-neutral-600">Véhicules en service : <strong>{s.vehicles}</strong> (géré dans Flotte).</p>
         <div><label className="label text-sm" htmlFor="open_time">Ouverture</label><input id="open_time" type="time" name="open_time" defaultValue={s.open_time.slice(0, 5)} className="input" /></div>

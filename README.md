@@ -185,3 +185,20 @@ reçu marque la course payée automatiquement.
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_NOTIFY_TO`, `WHATSAPP_TEMPLATE` | Notification WhatsApp automatique |
 
 Migration SQL correspondante : `supabase/migrations/0003_v2_flotte_finances.sql`.
+
+---
+
+## Mise à disposition avec chauffeur
+Formules **demi-journée** et **journée** (durées et forfaits dans Admin → Réglages, 5 h / 25 000 FCFA et
+10 h / 45 000 FCFA par défaut). Le client choisit la formule en haut du formulaire, indique le lieu de prise en
+charge (ex. AIBD) et son programme. Le véhicule est bloqué pendant toute la durée (+ approche et marge) et la
+prestation doit se terminer avant l'heure de fermeture. Lien direct : `/?service=journee#reserver`.
+Migration : `supabase/migrations/0004_mise_a_disposition.sql`.
+
+## Rapport banque / investisseurs
+**Admin → Rapport** : période (mois, trimestre, année, 12 mois ou personnalisée) et véhicule, puis
+**Télécharger en PDF** (A4, via l'impression du navigateur) ou **Télécharger en Excel** (6 feuilles).
+
+## Performance
+Fonctions Vercel en région Paris (`vercel.json`), pages publiques pré-générées (rafraîchies toutes les 5 min),
+réglages en cache vidé à chaque modification dans l'admin.

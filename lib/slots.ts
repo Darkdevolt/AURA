@@ -57,7 +57,13 @@ export function maxConcurrency(busy: BusyInterval[], start: number, end: number)
   return max;
 }
 
+export interface StartOptions {
+  /** La prestation entière doit tenir dans les horaires d'ouverture (mise à disposition). */
+  endByClose?: boolean;
+}
+
 export type SlotError =
+  | "ends_after_close"
   | "closed_day"
   | "outside_hours"
   | "not_on_grid"
@@ -72,6 +78,7 @@ export const SLOT_ERROR_MESSAGES: Record<SlotError, string> = {
   too_soon: "Les réservations doivent être faites au moins 1 heure à l'avance.",
   too_far: "Les réservations sont possibles jusqu'à 14 jours à l'avance.",
   unavailable: "Ce créneau n'est plus disponible. Merci d'en choisir un autre.",
+  ends_after_close: "La prestation doit se terminer avant l'heure de fermeture : choisissez un horaire plus tôt.",
 };
 
 /** Vérifie qu'un horaire de départ est réservable. Retourne null si OK. */
@@ -81,6 +88,7 @@ export function checkStart(
   now: number,
   busy: BusyInterval[],
   r: SlotRules,
+  opts: StartOptions = {},
 ): SlotError | null {
   const date = dakarDate(start);
   if (!r.open_days.includes(weekdayOf(date))) return "closed_day";
@@ -94,6 +102,7 @@ export function checkStart(
   const lastDay = addDays(dakarDate(now), r.max_days_ahead);
   if (date > lastDay) return "too_far";
 
+  if (opts.endByClose && start + durationMin * MIN > dakarToUtc(date, "00:00") + timeToMinutes(r.close_time) * MIN) return "ends_after_close";
   const end = start + blockMinutes(durationMin, r) * MIN;
   if (busy.some((b) => b.kind === "blocked" && b.start < end && b.end > start)) return "unavailable";
   if (maxConcurrency(busy, start, end) >= r.vehicles) return "unavailable";
@@ -107,8 +116,9 @@ export function availableSlots(
   now: number,
   busy: BusyInterval[],
   r: SlotRules,
+  opts: StartOptions = {},
 ): Slot[] {
-  return daySlotStarts(date, r).filter((s) => checkStart(s.start, durationMin, now, busy, r) === null);
+  return daySlotStarts(date, r).filter((s) => checkStart(s.start, durationMin, now, busy, r, opts) === null);
 }
 
 /** Jours ouverts réservables à partir d'aujourd'hui (heure de Dakar). */

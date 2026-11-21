@@ -13,7 +13,8 @@ import { formatSenegalPhone, normalizeSenegalPhone } from "@/lib/phone";
 import { formatFcfa } from "@/lib/pricing";
 import { bookableDates } from "@/lib/slots";
 import { dakarDate, dakarTime, formatDateLong, formatDateShort } from "@/lib/time";
-import type { LatLng, Place } from "@/lib/types";
+import { disposalMinutes, isDisposal, serviceEnabled, servicePrice, SERVICE_LABELS } from "@/lib/service";
+import type { LatLng, Place, ServiceKind } from "@/lib/types";
 import type { PublicSettings } from "@/lib/server-data";
 import { bookingWhatsAppMessage, waLink, type BookingSummary } from "@/lib/whatsapp";
 
@@ -46,7 +47,7 @@ interface SlotOption {
   time: string;
 }
 
-type Confirmation = BookingSummary & { distance_km: number; duration_min: number; whatsapp_number: string; tracking_token: string };
+type Confirmation = BookingSummary & { service?: ServiceKind; distance_km: number; duration_min: number; whatsapp_number: string; tracking_token: string };
 
 const DEFAULT_DURATION = 25;
 
@@ -67,6 +68,24 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   const [pickupNote, setPickupNote] = useState("");
   const [dropoff, setDropoff] = useState<Place | null>(null);
   const [picking, setPicking] = useState<PickKind | null>(null);
+  const [service, setService] = useState<ServiceKind>("course");
+  const disposal = isDisposal(service);
+  const forfait = disposal ? servicePrice(service, settings).price : null;
+
+  // Lien direct vers une formule (ex. /?service=journee#reserver)
+  useEffect(() => {
+    const read = () => {
+      const v = new URLSearchParams(window.location.search).get("service");
+      if (v === "journee" || v === "demi_journee") setService(v);
+    };
+    read();
+    window.addEventListener("popstate", read);
+    window.addEventListener("hashchange", read);
+    return () => {
+      window.removeEventListener("popstate", read);
+      window.removeEventListener("hashchange", read);
+    };
+  }, []);
   const [geoState, setGeoState] = useState<"idle" | "loading" | "error">("idle");
   const [geoError, setGeoError] = useState("");
 
@@ -161,7 +180,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
 
   // ---------------------------------------------------------------- Estimation
   useEffect(() => {
-    if (!pickup || !dropoff) {
+    if (!pickup || !dropoff || disposal) {
       setEstimate(null);
       return;
     }
@@ -189,16 +208,16 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
       clearTimeout(t);
       c.abort();
     };
-  }, [pickup?.lat, pickup?.lng, dropoff?.lat, dropoff?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pickup?.lat, pickup?.lng, dropoff?.lat, dropoff?.lng, disposal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------- Créneaux
-  const duration = estimate?.durationMin ?? DEFAULT_DURATION;
+  const duration = disposal ? disposalMinutes(service, settings) : (estimate?.durationMin ?? DEFAULT_DURATION);
   const loadSlots = useCallback(async () => {
     if (!date) return;
     setSlotsLoading(true);
     setSlotsError("");
     try {
-      const res = await fetch(`/api/slots?date=${date}&duration=${duration}`, { cache: "no-store" });
+      const res = await fetch(`/api/slots?date=${date}&duration=${duration}&service=${service}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setSlots(data.slots);
@@ -209,7 +228,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
     } finally {
       setSlotsLoading(false);
     }
-  }, [date, duration]);
+  }, [date, duration, service]);
 
   useEffect(() => {
     void loadSlots();
@@ -218,14 +237,14 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   // ---------------------------------------------------------------- Envoi
   const missing: string[] = [];
   if (!pickup) missing.push("le point de départ");
-  if (!dropoff) missing.push("la destination");
+  if (!dropoff && !disposal) missing.push("la destination");
   if (!slot) missing.push("la date et l'heure");
   if (name.trim().length < 2) missing.push("votre prénom");
   if (!phoneOk) missing.push("un numéro de téléphone valide");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (missing.length || !pickup || !dropoff) {
+    if (missing.length || !pickup || (!dropoff && !disposal)) {
       setTouchedPhone(true);
       setSubmitError(`Il manque : ${missing.join(", ")}.`);
       return;
@@ -242,8 +261,9 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
           pickup: { lat: pickup.lat, lng: pickup.lng },
           pickup_address: pickup.address,
           pickup_note: pickupNote,
-          dropoff: { lat: dropoff.lat, lng: dropoff.lng },
-          dropoff_address: dropoff.address,
+          service,
+          dropoff: dropoff ? { lat: dropoff.lat, lng: dropoff.lng } : null,
+          dropoff_address: dropoff?.address ?? "",
           start_at: slot,
           passengers,
           comment,
@@ -319,13 +339,19 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               {confirmation.pickup_address}
               {confirmation.pickup_note && <span className="block text-neutral-600">{confirmation.pickup_note}</span>}
             </dd>
+            {confirmation.service && confirmation.service !== "course" && (
+              <>
+                <dt className="text-neutral-600">Formule</dt>
+                <dd className="font-semibold">{SERVICE_LABELS[confirmation.service]}</dd>
+              </>
+            )}
             <dt className="text-neutral-600">Destination</dt>
             <dd>{confirmation.dropoff_address}</dd>
             <dt className="text-neutral-600">Passagers</dt>
             <dd>{confirmation.passengers}</dd>
             <dt className="text-neutral-600">Téléphone</dt>
             <dd>{formatSenegalPhone(confirmation.customer_phone)}</dd>
-            <dt className="text-neutral-600">Prix estimé</dt>
+            <dt className="text-neutral-600">{confirmation.service && confirmation.service !== "course" ? "Forfait" : "Prix estimé"}</dt>
             <dd className="font-semibold">{formatFcfa(confirmation.estimated_price)}</dd>
           </dl>
           <p className="mt-3 text-sm text-neutral-600">Prix indicatif, payé à la fin de la course (espèces, Wave ou Orange Money).</p>
@@ -347,9 +373,30 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
   // ---------------------------------------------------------------- Formulaire
   return (
     <form onSubmit={submit} noValidate>
-      <Step n={1} title="Votre trajet">
+      <Step n={1} title={disposal ? "Prise en charge" : "Votre trajet"}>
+        <div>
+          <p className="label" id="service-label">Formule</p>
+          <div className="cells grid-cols-3" role="radiogroup" aria-labelledby="service-label">
+            {(["course", "demi_journee", "journee"] as const).filter((k) => serviceEnabled(k, settings)).map((k) => (
+              <button key={k} type="button" role="radio" aria-checked={service === k} onClick={() => setService(k)}
+                className={`flex min-h-16 flex-col items-center justify-center px-1 py-2 text-center transition ${service === k ? "chip-on" : "chip-off"}`}>
+                <span className="text-[12px] font-bold uppercase tracking-[0.04em]">{k === "course" ? "Course" : k === "journee" ? "Journée" : "Demi-journée"}</span>
+                <span className={`mt-0.5 text-[11px] ${service === k ? "text-gold-light" : "text-neutral-500"}`}>
+                  {k === "course" ? "Prix au km" : `${k === "journee" ? settings.full_day_hours : settings.half_day_hours} h · ${formatFcfa(servicePrice(k, settings).price)}`}
+                </span>
+              </button>
+            ))}
+          </div>
+          {disposal && (
+            <p className="alert-info mt-3">
+              Un chauffeur et son véhicule rien que pour vous pendant {service === "journee" ? settings.full_day_hours : settings.half_day_hours} h :
+              accueil à l&apos;aéroport AIBD, rendez-vous, courses, visites… Indiquez le lieu de prise en charge, et votre
+              programme dans le commentaire.
+            </p>
+          )}
+        </div>
         <div className="relative space-y-4 pl-9">
-          <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-px bg-gradient-to-b from-ink via-neutral-300 to-gold" />
+          {!disposal && <div aria-hidden className="absolute bottom-10 left-[13px] top-10 w-px bg-gradient-to-b from-ink via-neutral-300 to-gold" />}
           <div className="relative">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-ink text-xs font-bold text-gold-light">A</span>
             <MapPinButton onClick={() => setPicking("pickup")} label="Placer le point de départ sur la carte" />
@@ -371,7 +418,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               <input id="pickup-note" className="input" maxLength={300} placeholder="Ex. devant la pharmacie, portail bleu" value={pickupNote} onChange={(e) => setPickupNote(e.target.value)} />
             </div>
           </div>
-          <div className="relative">
+          {!disposal && <div className="relative">
             <span aria-hidden className="absolute -left-9 top-9 flex h-7 w-7 items-center justify-center bg-gold-grad text-xs font-bold text-ink">B</span>
             <MapPinButton onClick={() => setPicking("dropoff")} label="Placer la destination sur la carte" />
             <AddressSearch
@@ -381,14 +428,14 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               onSelect={(p) => void setPoint("dropoff", p, p.address)}
               onMapRequest={() => setPicking("dropoff")}
             />
-          </div>
+          </div>}
         </div>
 
         {/* Aperçu du trajet */}
         <div className="border border-line">
           <div className="relative isolate h-56 overflow-hidden bg-neutral-100 sm:h-64">
             {pickup || dropoff ? (
-              <RouteMap pickup={pickup} dropoff={dropoff} route={estimate?.geometry ?? null} onPick={setPicking} />
+              <RouteMap pickup={pickup} dropoff={disposal ? null : dropoff} route={disposal ? null : (estimate?.geometry ?? null)} onPick={setPicking} />
             ) : (
               <button type="button" onClick={() => setPicking("pickup")}
                 className="group absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-grad text-white">
@@ -398,8 +445,8 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 divide-x divide-line border-t border-line">
-            {(["pickup", "dropoff"] as const).map((k) => {
+          <div className={`grid divide-x divide-line border-t border-line ${disposal ? "grid-cols-1" : "grid-cols-2"}`}>
+            {(disposal ? (["pickup"] as const) : (["pickup", "dropoff"] as const)).map((k) => {
               const set = k === "pickup" ? pickup : dropoff;
               return (
                 <button key={k} type="button" onClick={() => setPicking(k)}
@@ -412,7 +459,18 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
           </div>
         </div>
 
-        {(estimateLoading || estimate || estimateError) && (
+        {disposal && forfait !== null && (
+          <div className="relative bg-ink-grad p-5 text-center text-white">
+            <div aria-hidden className="gold-rule absolute inset-x-0 top-0" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">{SERVICE_LABELS[service]}</p>
+            <p className="mt-1 text-2xl font-bold gold-text">{formatFcfa(forfait)}</p>
+            <p className="mt-2 text-xs text-neutral-400">
+              Forfait {service === "journee" ? settings.full_day_hours : settings.half_day_hours} h avec chauffeur, à régler à la fin de la prestation.
+            </p>
+          </div>
+        )}
+
+        {!disposal && (estimateLoading || estimate || estimateError) && (
           <div className="relative bg-ink-grad p-5 text-white" aria-live="polite">
             <div aria-hidden className="gold-rule absolute inset-x-0 top-0" />
             {estimateLoading && <p>Calcul de l&apos;estimation…</p>}
@@ -447,7 +505,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
               if (picking === "pickup") {
                 setPickup(place);
                 if (note !== undefined) setPickupNote(note);
-                setPicking(dropoff ? null : "dropoff");
+                setPicking(dropoff || disposal ? null : "dropoff");
               } else {
                 setDropoff(place);
                 setPicking(null);
@@ -546,7 +604,7 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         </div>
         <div>
           <label htmlFor="comment" className="label">Commentaire <span className="font-normal text-neutral-600">(facultatif)</span></label>
-          <textarea id="comment" className="input min-h-20" maxLength={500} placeholder="Bagages, siège enfant, arrêt en route…" value={comment} onChange={(e) => setComment(e.target.value)} />
+          <textarea id="comment" className="input min-h-20" maxLength={500} placeholder={disposal ? "Votre programme : arrivée du vol, hôtel, rendez-vous, visites…" : "Bagages, siège enfant, arrêt en route…"} value={comment} onChange={(e) => setComment(e.target.value)} />
         </div>
       </Step>
 
@@ -596,9 +654,10 @@ export default function BookingForm({ settings }: { settings: PublicSettings }) 
         <div aria-hidden className="gold-rule" />
         <div className="flex items-center gap-3 px-5 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">{estimate ? "Prix estimé" : "Prix"}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-400">{disposal ? "Forfait" : estimate ? "Prix estimé" : "Prix"}</p>
             <p className="truncate text-lg font-semibold tabular-nums">
-              {estimate ? <span className="gold-text">{formatFcfa(estimate.price)}</span> : <span className="text-sm font-normal text-neutral-400">Indiquez votre trajet</span>}
+              {disposal && forfait !== null ? <span className="gold-text">{formatFcfa(forfait)}</span>
+                : estimate ? <span className="gold-text">{formatFcfa(estimate.price)}</span> : <span className="text-sm font-normal text-neutral-400">Indiquez votre trajet</span>}
             </p>
           </div>
           <button type="submit" className="btn-gold shrink-0 px-5" disabled={submitting}>

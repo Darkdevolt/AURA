@@ -8,6 +8,9 @@ export type BookingStatus =
 
 export type PaymentMethod = "cash" | "wave" | "orange_money";
 
+/** Type de prestation : course simple ou mise à disposition avec chauffeur. */
+export type ServiceKind = "course" | "demi_journee" | "journee";
+
 export const STATUS_LABELS: Record<BookingStatus, string> = {
   pending: "En attente",
   confirmed: "Confirmée",
@@ -61,6 +64,12 @@ export interface Settings {
   max_per_ip_per_day: number;
   contact_lines: ContactLine[];
   ntfy_topic: string | null;
+  half_day_enabled: boolean;
+  half_day_hours: number;
+  half_day_price: number;
+  full_day_enabled: boolean;
+  full_day_hours: number;
+  full_day_price: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -84,6 +93,12 @@ export const DEFAULT_SETTINGS: Settings = {
   max_active_per_phone: 3,
   max_per_ip_per_day: 6,
   ntfy_topic: null,
+  half_day_enabled: true,
+  half_day_hours: 5,
+  half_day_price: 25000,
+  full_day_enabled: true,
+  full_day_hours: 10,
+  full_day_price: 45000,
   contact_lines: [
     { label: "Asaad 1", phone: "+221772966462", whatsapp: true },
     { label: "Asaad 1 · 2e ligne", phone: "+221765107848", whatsapp: true },
@@ -120,6 +135,7 @@ export interface Booking {
   driver_lng: number | null;
   driver_pos_at: string | null;
   paid_online: boolean;
+  service: ServiceKind;
 }
 
 export interface LatLng {

@@ -7,6 +7,7 @@ import { formatSenegalPhone } from "@/lib/phone";
 import { formatFcfa } from "@/lib/pricing";
 import { dakarTime, formatDateLong } from "@/lib/time";
 import { PAYMENT_LABELS, STATUS_COLORS, STATUS_LABELS, type Booking, type BookingStatus } from "@/lib/types";
+import { SERVICE_LABELS } from "@/lib/service";
 import { waLink } from "@/lib/whatsapp";
 
 export interface FleetOption {
@@ -64,7 +65,10 @@ export default function BookingCard({ b, showDate = false, vehicles, drivers, si
             {dakarTime(start).replace(":", "h")} <span className="text-neutral-400">→ {dakarTime(Date.parse(b.blocked_until)).replace(":", "h")}</span>
           </p>
           {showDate && <p className="text-sm capitalize text-neutral-700">{formatDateLong(start)}</p>}
-          <p className="text-sm text-neutral-600">{b.reference} · {b.passengers} pass. · {b.distance_km} km · ~{b.duration_min} min</p>
+          {b.service && b.service !== "course" ? (
+            <p className="mt-1 inline-block bg-gold-grad px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.05em] text-ink">{SERVICE_LABELS[b.service]}</p>
+          ) : null}
+          <p className="text-sm text-neutral-600">{b.reference} · {b.passengers} pass.{b.service && b.service !== "course" ? ` · ${Math.round(b.duration_min / 60)} h` : ` · ${b.distance_km} km · ~${b.duration_min} min`}</p>
         </div>
         <span className={`border px-3 py-1 text-xs font-semibold uppercase tracking-[0.05em] ${STATUS_COLORS[b.status]}`}>
           {STATUS_LABELS[b.status]}{b.paid_online ? " · payé Wave" : ""}
