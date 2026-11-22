@@ -1,4 +1,5 @@
 import BookingForm from "@/components/BookingForm";
+import VehicleGallery from "@/components/VehicleGallery";
 import { getSettings, publicSettings } from "@/lib/server-data";
 
 // Page pré-générée, rafraîchie toutes les 5 minutes (et immédiatement après un changement de réglages)
@@ -52,6 +53,28 @@ export default async function HomePage() {
         <div className="mt-8">
           <BookingForm settings={settings} />
         </div>
+      </section>
+
+      {/* Notre véhicule */}
+      <section aria-labelledby="vehicule" className="mt-20">
+        <div className="wrap">
+          <p className="eyebrow">Notre véhicule</p>
+          <h2 id="vehicule" className="font-brand mt-2 text-2xl sm:text-3xl">Leapmotor T03</h2>
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-neutral-700">
+            Une citadine 100 % électrique, silencieuse et climatisée, idéale pour circuler dans Dakar.
+          </p>
+        </div>
+        <div className="mx-auto mt-6 w-full max-w-5xl sm:px-5">
+          <VehicleGallery />
+        </div>
+        <ul className="cells mx-auto mt-6 w-[calc(100%-2.5rem)] max-w-3xl grid-cols-3 text-center">
+          {[["100 %", "électrique"], ["0", "bruit moteur"], ["Clim", "à bord"]].map(([a, b]) => (
+            <li key={b} className="bg-white px-2 py-3">
+              <p className="font-brand gold-text text-lg">{a}</p>
+              <p className="text-[11px] uppercase tracking-[0.06em] text-neutral-500">{b}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* Comment ça marche */}
