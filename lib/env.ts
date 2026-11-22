@@ -5,9 +5,9 @@
  * Le jeton serveur, lui, est secret : uniquement en variable d'environnement (Vercel).
  */
 export const PUBLIC_SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://otsiwiwlnowxeolbbgvm.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hwztbzesolxloycruqyn.supabase.co";
 export const PUBLIC_SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_MhaI5b-kMmb5liIMOJ4P3Q_xGTsJAFJ";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_miJJN-C6dWeHzzR7_dlsVA_lKZJNMqR";
 
 export const SUPABASE_URL = () => PUBLIC_SUPABASE_URL;
 export const SUPABASE_ANON_KEY = () => PUBLIC_SUPABASE_ANON_KEY;
