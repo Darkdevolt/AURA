@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Photos et documents du véhicule (jusqu'à 10 Mo) envoyés par les formulaires d'administration
+  experimental: { serverActions: { bodySizeLimit: "11mb" } },
   async headers() {
     return [
       {

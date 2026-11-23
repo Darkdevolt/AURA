@@ -182,7 +182,127 @@ export interface Vehicle {
   active: boolean;
   purchase_price: number | null;
   purchase_date: string | null;
+  version?: string | null;
+  plug?: string | null;
+  in_service_on?: string | null;
+  odometer_start_km?: number | null;
+  notes?: string | null;
   created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Gestion de flotte : documents, charges fixes, prêt, journées, trésorerie
+// ---------------------------------------------------------------------------
+export const DOC_KINDS = {
+  photo: "Photo",
+  carte_grise: "Carte grise",
+  assurance: "Assurance",
+  visite_technique: "Visite technique",
+  autre: "Autre document",
+} as const;
+export type DocKind = keyof typeof DOC_KINDS;
+
+export interface VehicleDoc {
+  id: string;
+  vehicle_id: string;
+  kind: DocKind;
+  title: string | null;
+  number: string | null;
+  issued_on: string | null;
+  expires_on: string | null;
+  file_path: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export const FIXED_COST_KINDS = {
+  salaire: "Salaire",
+  pret: "Mensualité du prêt",
+  entretien: "Réserve entretien",
+  amortissement: "Amortissement",
+  autre: "Autre charge fixe",
+} as const;
+export type FixedCostKind = keyof typeof FIXED_COST_KINDS;
+
+export interface FixedCost {
+  id: string;
+  vehicle_id: string | null;
+  kind: FixedCostKind;
+  label: string;
+  monthly_amount: number;
+  /** false : uniquement dans les états financiers (ex. amortissement) */
+  in_result: boolean;
+  starts_on: string | null;
+  ends_on: string | null;
+  active: boolean;
+}
+
+export interface Loan {
+  id: string;
+  vehicle_id: string | null;
+  label: string;
+  lender: string | null;
+  principal: number | null;
+  annual_rate: number;
+  months: number;
+  monthly_payment: number;
+  first_due_on: string | null;
+}
+
+/** Journée d'activité Yango d'un véhicule */
+export interface DayRecord {
+  id: string;
+  day: string;
+  vehicle_id: string;
+  trips: number;
+  cash_collected: number;
+  commissions: number;
+  net_yango: number;
+  bonus: number;
+  yango_topup: number;
+  yango_balance: number | null;
+  km_start: number | null;
+  km_end: number | null;
+  notes: string | null;
+}
+
+export const CASH_KINDS = {
+  versement_chauffeur: "Versement du chauffeur",
+  envoi_chauffeur: "Envoi au chauffeur (recharge / solde Yango)",
+  retrait: "Retrait pour une dépense",
+  ancien_partenaire: "Versement ancien partenaire",
+  apport: "Apport personnel",
+  salaire: "Paiement de salaire",
+  avance_salaire: "Avance sur salaire",
+  pret: "Mensualité du prêt",
+  autre: "Autre",
+} as const;
+export type CashKind = keyof typeof CASH_KINDS;
+export type CashAccount = "coffre" | "yango" | "especes";
+export const CASH_ACCOUNTS: Record<CashAccount, string> = {
+  coffre: "Coffre Wave",
+  yango: "Solde Yango",
+  especes: "Espèces chez le chauffeur",
+};
+
+export interface CashMove {
+  id: string;
+  day: string;
+  at: string | null;
+  vehicle_id: string | null;
+  account: CashAccount;
+  direction: "entree" | "sortie";
+  amount: number;
+  kind: CashKind;
+  note: string | null;
+}
+
+export interface Balance {
+  id: string;
+  at: string;
+  account: CashAccount;
+  amount: number;
+  note: string | null;
 }
 
 export interface Driver {
@@ -206,18 +326,21 @@ export const MONEY_LABELS: Record<Money, string> = {
 export const EXPENSE_CATEGORIES = {
   recharge: "Recharge électrique",
   carburant: "Carburant",
-  entretien: "Entretien / réparation",
+  entretien: "Entretien",
+  reparation: "Réparation",
   pneus: "Pneus",
   lavage: "Lavage",
-  peage: "Péage",
+  police: "Police",
   parking: "Parking",
   assurance: "Assurance",
   salaire: "Salaire chauffeur",
   credit: "Crédit / leasing",
   amende: "Amende",
   telephone: "Téléphone / internet",
+  divers: "Divers",
   autre: "Autre",
 } as const;
+// Le péage est un frais personnel : jamais compté dans les charges du véhicule.
 export type ExpenseCategory = keyof typeof EXPENSE_CATEGORIES;
 
 export const INCOME_SOURCES = {

@@ -6,7 +6,7 @@ import { waveEnabled } from "@/lib/wave";
 import { formatFcfa } from "@/lib/pricing";
 import { requireAdmin } from "@/lib/supabase/server";
 import { addDays, dakarDate, dakarTime, dakarToUtc, formatDateLong, timeToMinutes, weekdayOf } from "@/lib/time";
-import { STATUS_LABELS, type Booking, type BookingStatus } from "@/lib/types";
+import { DOC_KINDS, STATUS_LABELS, type Booking, type BookingStatus, type DocKind } from "@/lib/types";
 
 const BAR: Record<BookingStatus, string> = {
   pending: "bg-amber-400",
@@ -57,6 +57,9 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     supabase.from("luxus_drivers").select("id, name").eq("active", true).order("created_at"),
     supabase.from("luxus_bookings").select("customer_phone").eq("status", "no_show"),
   ]);
+  // Rappels : documents du véhicule expirés ou qui expirent dans les 30 jours
+  const { data: docsDue } = await supabase.from("luxus_vehicle_docs").select("kind, expires_on, vehicle_id")
+    .not("expires_on", "is", null).lte("expires_on", addDays(today, 30)).order("expires_on");
 
   const bookings = (dayRes.data ?? []) as Booking[];
   const fleet = { vehicles: vehRes.data ?? [], drivers: drvRes.data ?? [], siteUrl: SITE_URL(), waveEnabled: waveEnabled() };
@@ -83,6 +86,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   return (
     <div className="space-y-5">
+      {(docsDue ?? []).length > 0 && (
+        <Link href="/admin/flotte" className="block border-l-2 border-amber-500 bg-amber-50 px-4 py-3 text-[13px] text-amber-950">
+          <strong>À renouveler :</strong>{" "}
+          {(docsDue ?? []).map((d) => `${DOC_KINDS[d.kind as DocKind]} (${d.expires_on < today ? "expiré" : "expire"} le ${d.expires_on.split("-").reverse().join("/")})`).join(" · ")} →
+        </Link>
+      )}
       <section aria-label="Statistiques" className="grid grid-cols-3 gap-2">
         <Stat label="Aujourd'hui" {...sToday} />
         <Stat label="Semaine" {...sWeek} />

@@ -160,6 +160,10 @@ const intOrNull = (v: FormDataEntryValue | null) => {
   return Number.isInteger(n) && n >= 0 ? n : NaN;
 };
 const text = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim().slice(0, max) || null;
+const isoDate = (v: FormDataEntryValue | null) => {
+  const s = String(v ?? "");
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+};
 
 export async function saveVehicle(_: ActionResult | null, form: FormData): Promise<ActionResult> {
   const supabase = await admin();
@@ -177,7 +181,13 @@ export async function saveVehicle(_: ActionResult | null, form: FormData): Promi
     purchase_price,
     purchase_date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
     active: form.get("active") === "on",
+    version: text(form.get("version"), 80),
+    plug: text(form.get("plug"), 30),
+    in_service_on: isoDate(form.get("in_service_on")),
+    odometer_start_km: intOrNull(form.get("odometer_start_km")),
+    notes: text(form.get("notes"), 1000),
   };
+  if (Number.isNaN(row.odometer_start_km)) return { ok: false, message: "Kilométrage invalide." };
   const { error } = id
     ? await supabase.from("luxus_vehicles").update(row).eq("id", id)
     : await supabase.from("luxus_vehicles").insert(row);
@@ -322,4 +332,115 @@ export async function proposeTime(id: string, date: string, time: string): Promi
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin");
   return { ok: true, message: "Proposition enregistrée : envoyez-la au client.", proposedAt: new Date(start).toISOString() };
+}
+
+// ---------------------------------------------------------------------------
+// Flotte : documents du véhicule (carte grise, assurance, visite technique, photos)
+// ---------------------------------------------------------------------------
+const DOC_KIND_LIST = ["photo", "carte_grise", "assurance", "visite_technique", "autre"];
+const DOC_MIME = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+
+export async function saveVehicleDoc(_: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const supabase = await admin();
+  const vehicle_id = String(form.get("vehicle_id") ?? "");
+  const kind = String(form.get("kind") ?? "");
+  if (!vehicle_id || !DOC_KIND_LIST.includes(kind)) return { ok: false, message: "Choisissez le type de document." };
+  let file_path: string | null = null;
+  const file = form.get("file");
+  if (file instanceof File && file.size > 0) {
+    if (!DOC_MIME.includes(file.type)) return { ok: false, message: "Format accepté : photo (JPEG, PNG, WebP) ou PDF." };
+    if (file.size > 10 * 1024 * 1024) return { ok: false, message: "Fichier trop lourd (10 Mo maximum)." };
+    const ext = file.type === "application/pdf" ? "pdf" : file.type.split("/")[1].replace("jpeg", "jpg");
+    file_path = `${vehicle_id}/${kind}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("luxus-vehicles").upload(file_path, file, { contentType: file.type });
+    if (upErr) return { ok: false, message: `Envoi du fichier impossible : ${upErr.message}` };
+  }
+  if (kind === "photo" && !file_path) return { ok: false, message: "Ajoutez la photo." };
+  const { error } = await supabase.from("luxus_vehicle_docs").insert({
+    vehicle_id,
+    kind,
+    title: text(form.get("title"), 120),
+    number: text(form.get("number"), 80),
+    issued_on: isoDate(form.get("issued_on")),
+    expires_on: isoDate(form.get("expires_on")),
+    note: text(form.get("note"), 500),
+    file_path,
+  });
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: kind === "photo" ? "Photo ajoutée." : "Document enregistré." };
+}
+
+export async function deleteVehicleDoc(form: FormData) {
+  const supabase = await admin();
+  const id = String(form.get("id") ?? "");
+  const { data } = await supabase.from("luxus_vehicle_docs").select("file_path").eq("id", id).maybeSingle();
+  if (data?.file_path) await supabase.storage.from("luxus-vehicles").remove([data.file_path]);
+  await supabase.from("luxus_vehicle_docs").delete().eq("id", id);
+  revalidatePath("/admin", "layout");
+}
+
+// ---------------------------------------------------------------------------
+// Charges fixes mensuelles et prêt
+// ---------------------------------------------------------------------------
+const FIXED_KINDS = ["salaire", "pret", "entretien", "amortissement", "autre"];
+
+export async function saveFixedCost(_: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const supabase = await admin();
+  const id = String(form.get("id") ?? "");
+  const kind = String(form.get("kind") ?? "");
+  const label = text(form.get("label"), 80);
+  const monthly_amount = intOrNull(form.get("monthly_amount"));
+  if (!FIXED_KINDS.includes(kind) || !label) return { ok: false, message: "Type et libellé obligatoires." };
+  if (monthly_amount === null || Number.isNaN(monthly_amount)) return { ok: false, message: "Montant mensuel invalide." };
+  const row = {
+    vehicle_id: String(form.get("vehicle_id") ?? "") || null,
+    kind,
+    label,
+    monthly_amount,
+    in_result: kind === "amortissement" ? false : form.get("in_result") !== "off",
+    starts_on: isoDate(form.get("starts_on")),
+    ends_on: isoDate(form.get("ends_on")),
+    active: form.get("active") === "on",
+  };
+  const { error } = id
+    ? await supabase.from("luxus_fixed_costs").update(row).eq("id", id)
+    : await supabase.from("luxus_fixed_costs").insert(row);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: id ? "Charge mise à jour." : "Charge ajoutée." };
+}
+
+export async function deleteFixedCost(form: FormData) {
+  const supabase = await admin();
+  await supabase.from("luxus_fixed_costs").delete().eq("id", String(form.get("id") ?? ""));
+  revalidatePath("/admin", "layout");
+}
+
+export async function saveLoan(_: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const supabase = await admin();
+  const id = String(form.get("id") ?? "");
+  const principal = intOrNull(form.get("principal"));
+  const monthly_payment = intOrNull(form.get("monthly_payment"));
+  const months = intOrNull(form.get("months"));
+  const rate = Number(String(form.get("annual_rate") ?? "").replace(",", "."));
+  if (Number.isNaN(principal) || monthly_payment === null || Number.isNaN(monthly_payment)) return { ok: false, message: "Montants invalides." };
+  if (!months || Number.isNaN(months) || months > 360) return { ok: false, message: "Durée invalide (en mois)." };
+  if (!Number.isFinite(rate) || rate < 0 || rate > 100) return { ok: false, message: "Taux invalide (en %)." };
+  const row = {
+    vehicle_id: String(form.get("vehicle_id") ?? "") || null,
+    label: text(form.get("label"), 80) ?? "Prêt véhicule",
+    lender: text(form.get("lender"), 80),
+    principal,
+    annual_rate: rate,
+    months,
+    monthly_payment,
+    first_due_on: isoDate(form.get("first_due_on")),
+  };
+  const { error } = id
+    ? await supabase.from("luxus_loans").update(row).eq("id", id)
+    : await supabase.from("luxus_loans").insert(row);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: "Prêt enregistré." };
 }
