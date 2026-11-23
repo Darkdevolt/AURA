@@ -393,7 +393,10 @@ export async function saveFixedCost(_: ActionResult | null, form: FormData): Pro
   const monthly_amount = intOrNull(form.get("monthly_amount"));
   if (!FIXED_KINDS.includes(kind) || !label) return { ok: false, message: "Type et libellé obligatoires." };
   if (monthly_amount === null || Number.isNaN(monthly_amount)) return { ok: false, message: "Montant mensuel invalide." };
+  const cap_amount = intOrNull(form.get("cap_amount"));
+  if (Number.isNaN(cap_amount)) return { ok: false, message: "Plafond invalide." };
   const row = {
+    cap_amount,
     vehicle_id: String(form.get("vehicle_id") ?? "") || null,
     kind,
     label,

@@ -232,6 +232,8 @@ export interface FixedCost {
   monthly_amount: number;
   /** false : uniquement dans les états financiers (ex. amortissement) */
   in_result: boolean;
+  /** Plafond de la réserve (ex. 300 000) : la dotation s'arrête une fois atteint */
+  cap_amount?: number | null;
   starts_on: string | null;
   ends_on: string | null;
   active: boolean;

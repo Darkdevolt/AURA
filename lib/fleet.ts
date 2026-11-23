@@ -62,3 +62,31 @@ export function dayGap(c: DayCash): number {
 export function fcfa(n: number): string {
   return `${Math.round(n).toLocaleString("fr-FR").replace(/ | /g, " ")} FCFA`;
 }
+
+export interface ReserveMonth {
+  month: string; // AAAA-MM
+  allocated: number; // dotation du mois
+  used: number; // entretien / réparations payés ce mois
+  balance: number; // réserve disponible en fin de mois
+}
+
+/**
+ * Réserve plafonnée (ex. pannes / entretien) : chaque mois on met de côté `monthly`,
+ * sans jamais dépasser `cap`. Les entretiens et réparations puisent dans la réserve ;
+ * dès qu'elle repasse sous le plafond, la dotation reprend.
+ */
+export function reserveSchedule(months: string[], monthly: number, cap: number | null, usedByMonth: Record<string, number> = {}): ReserveMonth[] {
+  let balance = 0;
+  return months.map((month) => {
+    const room = cap === null ? monthly : Math.max(0, cap - balance);
+    const allocated = Math.min(monthly, room);
+    const used = usedByMonth[month] ?? 0;
+    balance = balance + allocated - used;
+    return { month, allocated, used, balance };
+  });
+}
+
+/** Nombre de mois de dotation nécessaires pour atteindre le plafond (sans dépense) */
+export function monthsToCap(monthly: number, cap: number): number {
+  return monthly > 0 ? Math.ceil(cap / monthly) : Infinity;
+}

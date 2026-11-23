@@ -2,7 +2,17 @@ import ConfirmButton from "@/components/admin/ConfirmButton";
 import { FixedCostForm, LoanForm } from "@/components/admin/FleetForms";
 import SettingsForm from "@/components/admin/SettingsForm";
 import { deleteFixedCost } from "../../actions";
-import { fcfa } from "@/lib/fleet";
+import { fcfa, monthsToCap } from "@/lib/fleet";
+
+const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+/** Mois où le plafond est atteint (sans dépense), à partir du mois de début */
+function capReachedLabel(startsOn: string | null, monthly: number, cap: number): string {
+  const start = startsOn ?? new Date().toISOString().slice(0, 10);
+  const n = monthsToCap(monthly, cap);
+  if (!Number.isFinite(n)) return "";
+  const d = new Date(Date.UTC(Number(start.slice(0, 4)), Number(start.slice(5, 7)) - 1 + n - 1, 1));
+  return `fin ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()} (${n} mois)`;
+}
 import { requireAdmin } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS, FIXED_COST_KINDS, type FixedCost, type Loan, type Settings, type Vehicle } from "@/lib/types";
 
@@ -38,6 +48,11 @@ export default async function SettingsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-[14px] font-semibold">{c.label} {!c.active && <span className="text-xs font-normal text-neutral-500">(désactivée)</span>}</p>
                     <p className="text-[11px] text-neutral-500">{FIXED_COST_KINDS[c.kind]} · {vName(c.vehicle_id)}{c.in_result ? "" : " · états financiers uniquement"}</p>
+                    {c.cap_amount ? (
+                      <p className="mt-0.5 text-[11px] font-semibold text-gold-dark">
+                        Plafond {fcfa(c.cap_amount)} : atteint {capReachedLabel(c.starts_on, c.monthly_amount, c.cap_amount)} s&apos;il n&apos;y a pas de réparation, puis la mise de côté s&apos;arrête.
+                      </p>
+                    ) : null}
                   </div>
                   <p className="shrink-0 text-[14px] font-bold tabular-nums">{fcfa(c.monthly_amount)}</p>
                   <span className="text-[11px] font-semibold uppercase text-gold-dark">Modifier</span>

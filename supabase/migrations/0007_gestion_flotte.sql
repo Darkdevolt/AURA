@@ -178,3 +178,7 @@ create table if not exists public.luxus_balances (
 alter table public.luxus_balances enable row level security;
 create policy "balances: admin tout" on public.luxus_balances
   for all to authenticated using ((select public.luxus_is_admin())) with check ((select public.luxus_is_admin()));
+
+-- Plafond de réserve (ex. réserve entretien : 20 000 / mois jusqu'à 300 000 maximum)
+alter table public.luxus_fixed_costs
+  add column if not exists cap_amount integer check (cap_amount >= 0);

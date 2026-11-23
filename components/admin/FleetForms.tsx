@@ -112,6 +112,8 @@ export function FixedCostForm({ c, vehicles }: { c?: FixedCost; vehicles: Vehicl
           <option value="">Toute la flotte</option>
           {vehicles.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select></div>
+      <div className="col-span-2"><label className="label" htmlFor={`fc-${id}`}>Plafond (facultatif)</label>
+        <input id={`fc-${id}`} name="cap_amount" inputMode="numeric" defaultValue={c?.cap_amount ?? ""} placeholder="ex. 300 000 : la mise de côté s'arrête une fois atteint" className="input" /></div>
       <div><label className="label" htmlFor={`fs-${id}`}>À partir du</label><input id={`fs-${id}`} type="date" name="starts_on" defaultValue={c?.starts_on ?? ""} className="input" /></div>
       <label className="col-span-2 flex min-h-11 items-center gap-2 text-sm">
         <input type="checkbox" name="active" defaultChecked={c?.active ?? true} className="h-5 w-5" /> Active

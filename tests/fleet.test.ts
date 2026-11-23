@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayGap, docStatus, workingDays, workingDaysInMonth } from "@/lib/fleet";
+import { dayGap, docStatus, monthsToCap, reserveSchedule, workingDays, workingDaysInMonth } from "@/lib/fleet";
 
 describe("jours ouvrés (lundi → samedi)", () => {
   it("compte 25 jours en novembre 2026 et 27 en décembre 2026", () => {
@@ -26,5 +26,21 @@ describe("documents du véhicule", () => {
     expect(docStatus("2026-12-10", "2026-11-23")).toBe("bientot");
     expect(docStatus("2027-06-01", "2026-11-23")).toBe("ok");
     expect(docStatus(null, "2026-11-23")).toBe("sans_date");
+  });
+});
+
+
+describe("réserve pannes plafonnée", () => {
+  it("met 20 000 de côté par mois jusqu'à 300 000, puis s'arrête", () => {
+    expect(monthsToCap(20000, 300000)).toBe(15);
+    const months = Array.from({ length: 17 }, (_, i) => `m${String(i).padStart(2, "0")}`);
+    const s = reserveSchedule(months, 20000, 300000);
+    expect(s[14].balance).toBe(300000);
+    expect(s[15].allocated).toBe(0);
+    expect(s[16].balance).toBe(300000);
+  });
+  it("reprend la dotation après une réparation", () => {
+    const s = reserveSchedule(["a", "b", "c"], 20000, 40000, { b: 30000 });
+    expect(s.map((m) => m.balance)).toEqual([20000, 10000, 30000]);
   });
 });
